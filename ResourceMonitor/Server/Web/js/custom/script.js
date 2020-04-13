@@ -1,0 +1,387 @@
+﻿var currentComputer = undefined;
+var computerList = [];
+var firstTime = true;
+var json_data = undefined;
+
+function isMobile() {
+    try {
+        document.createEvent("TouchEvent");
+        return true;
+    } catch (exception) {
+        return false
+    }
+}
+
+$(document).ready(function () {
+    $("#sidebarCollapse").on("click", function () {
+        $("#sidebar").toggleClass("active")
+        $('#content').toggleClass('moved');
+    });
+
+    if (isMobile()) {
+        $(".swipe-area").swipe({
+            allowPageScroll: "vertical",
+            swipeRight: function (event, direction, distance, duration, fingerCount, finderData, currentDirection) {
+                $("#sidebar").removeClass("active");
+                $('#content').addClass('moved');
+                if ($(".navbar-collapse").hasClass("navbar-collapse collapse show")) {
+                    $(".navbar-toggler").click();
+                }
+            },
+            swipeLeft: function (event, direction, distance, duration, fingerCount, finderData, currentDirection) {
+                $("#sidebar").addClass("active");
+                $('#content').removeClass('moved');
+                if ($(".navbar-collapse").hasClass("navbar-collapse collapse show")) {
+                    $(".navbar-toggler").click();
+                }
+            }
+        });
+    }
+
+    $(document).click(function (event) {
+        var clickover = $(event.target);
+        var isOpen = $(".navbar-collapse").hasClass("navbar-collapse collapse show");
+        if (isOpen === true && !clickover.hasClass("navbar")) {
+            $(".navbar-toggler").click();
+        }
+    });
+
+    Loading();
+
+    setInterval(LoadData, 1000);
+});
+
+$('.chart').easyPieChart({
+    size: 135,
+    scaleColor: false,
+    trackColor: "#E1E1E1",
+    lineWidth: 12,
+    onStep: function (from, to, percent) {
+        $(this.el).find('.value').text(Math.round(percent) + "%");
+    },
+    barColor: function (percent) {
+        if(percent >= 100) {
+            return "#FF0000";
+        } else if(percent <= 0) {
+            return "#00FF00";
+        }
+        return perc2color(percent, 100, 0);
+    }
+});
+
+function perc2color(perc, min, max) {
+    if(perc >= 100) {
+        return "#FF0000";
+    } else if(perc <= 0) {
+        return "#00FF00";
+    }
+
+    var base = (max - min);
+
+    if (base == 0) { perc = 100; }
+    else {
+        perc = (perc - min) / base * 100;
+    }
+    var r, g, b = 0;
+    if (perc < 50) {
+        r = 255;
+        g = Math.round(5.1 * perc);
+    }
+    else {
+        g = 255;
+        r = Math.round(510 - 5.10 * perc);
+    }
+    var h = r * 0x10000 + g * 0x100 + b * 0x1;
+    return '#' + ('000000' + h.toString(16)).slice(-6);
+}
+
+(function ($) {
+    $.fn.progressBar = function (givenValue) {
+        const $this = $(this);
+
+        function init(selector) {
+            const progressValue = selector.children().attr('aria-valuenow');
+
+            selector.children().width(progressValue + "%");
+        }
+
+        function set(selector, value) {
+            var progress_bar = selector.children();
+            progress_bar.removeClass('success fail active');
+            progress_bar.attr('aria-valuenow', value);
+
+            progress_bar[0].style.backgroundColor = perc2color(value, 100, 0);
+
+            init(selector);
+        }
+
+        set($this, givenValue);
+    }
+}(jQuery));
+
+var computerData = [];
+function buildSideBar() {
+    if (firstTime) {
+        $.ajaxSetup({
+            async: false
+        });
+    }
+
+    $.getJSON('computerList.json', function (data) {
+        computerData = data;
+        if (!arraysEqual(computerList, data)) {
+            console.log(computerList);
+            console.log(data);
+            var computer_list = document.getElementById("computer_list");
+            computer_list.innerHTML = "";
+
+            computerList = data;
+
+            if (firstTime) {
+                currentComputer = computerList[0];
+            }
+
+            for (let i = 0; i < computerList.length; i++) {
+                var listElement = document.createElement("li");
+                var anchorElement = document.createElement("a");
+                anchorElement.appendChild(document.createTextNode(computerList[i]));
+                anchorElement.setAttribute("id", computerList[i]);
+                anchorElement.setAttribute("onclick", "SetCurrentComputer(this)");
+                listElement.appendChild(anchorElement);
+
+                var sidebar = document.getElementById("computer_list");
+                var find = document.getElementById(computerList[i]);
+                if (find == null) {
+                    sidebar.appendChild(listElement);
+                }
+                try {
+                    document.getElementById(currentComputer).parentElement.classList.add("active");
+                } catch {
+
+                }
+            }
+        }
+    });
+}
+
+function SetCurrentComputer(element) {
+    var previousComputer = sidebar.getElementsByClassName("active")[0].firstElementChild;
+
+    sidebar.getElementsByClassName("active")[0].classList.remove("active");
+
+    element.parentElement.classList.add("active");
+
+    currentComputer = element.getAttribute("id");
+
+    if (currentComputer != previousComputer.getAttribute("id")) {
+        Loading();
+    }
+}
+
+function Loaded() {
+    $('#preloader .inner').fadeOut();
+    $('#preloader').delay(0).fadeOut('slow');
+    $('body').delay(250).css({ 'overflow': 'visible' });
+}
+
+function Loading() {
+    $("#preloader .inner").fadeIn();
+    $("body").delay(250).css({ "overflow": "hidden" });
+    $("#preloader").delay(250).fadeIn(function () {
+        var hdd_content = document.getElementById("hdd_content");
+        hdd_content.innerHTML = "";
+
+        LoadData();
+
+        setTimeout(Loaded, 2000);
+    });
+}
+
+function LoadData() {
+    /*if(currentComputer == undefined) {
+        return;
+    }*/
+
+    buildSideBar();
+
+    $.getJSON(currentComputer + ".json", function (data) {
+        json_data = data;
+
+        /*
+         * CPU
+         */
+        var cpu_model = json_data["Hardware"]["CPU"][0]["Name"];
+        var cpu_load = parseFloat(json_data["Hardware"]["CPU"][0]["Sensors"]["Load"]["CPU Total"]["Value"]).toFixed(1);
+        var cpu_temperature = parseFloat(json_data["Hardware"]["CPU"][0]["Sensors"]["Temperature"]["CPU Package"]["Value"]).toFixed(1);
+        var cpu_clock = parseFloat(json_data["Hardware"]["CPU"][0]["Sensors"]["Clock"]["CPU Core #1"]["Value"]).toFixed(1);
+        var cpu_max_clock = parseFloat(json_data["Hardware"]["CPU"][0]["Sensors"]["Clock"]["MaxClockSpeed"]).toFixed(1);
+        var cpu_power = parseFloat(json_data["Hardware"]["CPU"][0]["Sensors"]["Power"]["CPU Package"]["Value"]).toFixed(1);
+
+        document.getElementById("cpu_model").innerHTML = cpu_model;
+        document.getElementById("cpu_temperature_value").innerHTML = cpu_temperature + " °C";
+        document.getElementById("cpu_clock_value").innerHTML = cpu_clock + " Hz";
+        document.getElementById("cpu_power_value").innerHTML = cpu_power + " V";
+
+        $('#cpu_temperature').progressBar(cpu_temperature);
+        $('#cpu_clock').progressBar(parseFloat(mapValue(cpu_clock, [0, cpu_max_clock], [0, 100])));
+        $('#cpu_power').progressBar(cpu_power);
+
+        var cpu_chart = window.chart = $('#cpu_load').data('easyPieChart');
+        cpu_chart.update(cpu_load);
+        /*
+         * GPU
+         */
+        if (json_data["Hardware"]["GpuNvidia"].length != 0) {
+            var gpu_type = "GpuNvidia";
+        } else if (json_data["Hardware"]["GpuAti"].length != 0) {
+            var gpu_type = "GpuAti";
+        } else {
+            var gpu_chart = window.chart = $('#gpu_load').data('easyPieChart');
+            gpu_chart.options.barColor = "#E1E1E1";
+            gpu_chart.update();
+
+            $('#gpu_temperature').progressBar(0);
+            $('#gpu_core_clock').progressBar(0);
+            $('#gpu_memory_clock').progressBar(0);
+
+            document.getElementById("gpu_card").classList.add("disabled")
+            document.getElementById("gpu_model").innerHTML = "-";
+            document.getElementById("gpu_temperature_value").innerHTML = "-";
+            document.getElementById("gpu_core_clock_value").innerHTML = "-";
+            document.getElementById("gpu_memory_clock_value").innerHTML = "-";
+
+            var gpu_type = "not found";
+        }
+        if (gpu_type != "not found") {
+            document.getElementById("gpu_card").classList.remove("disabled")
+
+            var gpu_model = json_data["Hardware"][gpu_type][0]["Name"];
+            var gpu_load = parseFloat(json_data["Hardware"][gpu_type][0]["Sensors"]["Load"]["GPU Core"]["Value"]).toFixed(1);
+            var gpu_temperature = parseFloat(json_data["Hardware"][gpu_type][0]["Sensors"]["Temperature"]["GPU Core"]["Value"]).toFixed(1);
+            var gpu_core_clock = parseFloat(json_data["Hardware"][gpu_type][0]["Sensors"]["Clock"]["GPU Core"]["Value"]).toFixed(1);
+            var gpu_memory_clock = parseFloat(json_data["Hardware"][gpu_type][0]["Sensors"]["Clock"]["GPU Memory"]["Value"]).toFixed(1);
+
+            document.getElementById("gpu_model").innerHTML = gpu_model;
+            document.getElementById("gpu_temperature_value").innerHTML = gpu_temperature + " °C";
+            document.getElementById("gpu_core_clock_value").innerHTML = gpu_core_clock + " Hz";
+            document.getElementById("gpu_memory_clock_value").innerHTML = gpu_memory_clock + " Hz";
+
+            $('#gpu_temperature').progressBar(gpu_temperature);
+            $('#gpu_core_clock').progressBar(gpu_core_clock);
+            $('#gpu_memory_clock').progressBar(gpu_memory_clock);
+
+            var gpu_chart = window.chart = $('#gpu_load').data('easyPieChart');
+            gpu_chart.options.barColor = function (percent) {
+                return perc2color(percent, 100, 0);
+            }
+            gpu_chart.update(gpu_load);
+        }
+        /*
+         * RAM
+         */
+        var ram_model = json_data["Hardware"]["RAM"][0]["Name"];
+        var ram_load = parseFloat(json_data["Hardware"]["RAM"][0]["Sensors"]["Load"]["Memory"]["Value"]).toFixed(1);
+        var free_ram = parseFloat(json_data["Hardware"]["RAM"][0]["Sensors"]["Data"]["Available Memory"]["Value"]).toFixed(1);
+        var used_ram = parseFloat(json_data["Hardware"]["RAM"][0]["Sensors"]["Data"]["Used Memory"]["Value"]).toFixed(1);
+        var total_ram = parseFloat(free_ram) + parseFloat(used_ram);
+
+        document.getElementById("ram_model").innerHTML = ram_model;
+        document.getElementById("total_ram").innerHTML = "Total RAM: " + total_ram.toFixed(1);
+        document.getElementById("free_ram").innerHTML = "Free RAM: " + free_ram;
+        document.getElementById("used_ram").innerHTML = "Used RAM: " + used_ram;
+
+        var ram_chart = window.chart = $('#ram_load').data('easyPieChart');
+        ram_chart.update(ram_load);
+        /*
+         * HDD
+         */
+        for (let i = 0; i < json_data["Hardware"]["HDD"].length; i++) {
+            if (document.getElementById("hdd" + i) == null) {
+                var hdd = document.createElement("div");
+                hdd.setAttribute("id", "hdd" + i);
+                hdd.setAttribute("class", "my-auto text-center py-1");
+
+                var rowDiv = document.createElement("div");
+                rowDiv.setAttribute("class", "row d-flex justify-content-between ml-1 mr-1");
+
+                var model = document.createElement("small");
+                var disk = document.createElement("small");
+                var storage = document.createElement("small");
+                model.setAttribute("id", "hdd" + i + "_model_label");
+                disk.setAttribute("id", "hdd" + i + "_disk_label");
+                storage.setAttribute("id", "hdd" + i + "_storage_label");
+
+                rowDiv.appendChild(model);
+                rowDiv.appendChild(disk);
+                rowDiv.appendChild(storage);
+
+                var hdd_progress = document.createElement("div");
+                hdd_progress.setAttribute("id", "hdd" + i + "_progress");
+                hdd_progress.setAttribute("class", "progress md-progress my-1 z-depth-0 border");
+
+                var hdd_bar = document.createElement("div");
+                hdd_bar.setAttribute("id", "hdd" + i + "_bar");
+                hdd_bar.setAttribute("class", "progress-bar z-depth-0");
+                hdd_bar.setAttribute("role", "progressbar");
+                hdd_bar.setAttribute("aria-valuenow", "0");
+                hdd_bar.setAttribute("aria-valuemin", "0");
+                hdd_bar.setAttribute("aria-valuemax", "100");
+
+                hdd_progress.appendChild(hdd_bar);
+
+                hdd.appendChild(rowDiv);
+                hdd.appendChild(hdd_progress);
+
+                document.getElementById("hdd_content").appendChild(hdd);
+            }
+
+            try {
+                var model = document.getElementById("hdd" + i + "_model_label");
+                var disk = document.getElementById("hdd" + i + "_disk_label");
+                var storage = document.getElementById("hdd" + i + "_storage_label");
+                model.innerHTML = json_data["Hardware"]["HDD"][i]["Name"];
+                disk.innerHTML = "";
+                storage.innerHTML = parseFloat(json_data["Hardware"]["HDD"][i]["Sensors"]["Load"]["Used Space"]["Value"]).toFixed(1) + " %";
+                $('#hdd' + i + '_progress').progressBar(parseFloat(json_data["Hardware"]["HDD"][i]["Sensors"]["Load"]["Used Space"]["Value"]).toFixed(1));
+            } catch {
+
+            }
+        }
+    });
+
+    if (firstTime) {
+        firstTime = false;
+
+        $.ajaxSetup({
+            async: true
+        });
+    }
+}
+
+function arrayContainsArray(superset, subset) {
+    return subset.every(function (value) {
+        return (superset.indexOf(value) >= 0);
+    });
+}
+
+function arraysEqual(a, b) {
+    if (a === b) return true;
+    if (a == null || b == null) return false;
+    if (a.length != b.length) return false;
+
+    // If you don't care about the order of the elements inside
+    // the array, you should sort both arrays here.
+    // Please note that calling sort on an array will modify that array.
+    // you might want to clone your array first.
+    a = a.sort();
+    b = b.sort();
+
+    for (var i = 0; i < a.length; ++i) {
+        if (a[i] !== b[i]) return false;
+    }
+    return true;
+}
+
+function mapValue(value, from, to) {
+    return to[0] + (value - from[0]) * (to[1] - to[0]) / (from[1] - from[0]);
+}

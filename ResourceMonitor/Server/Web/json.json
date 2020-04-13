@@ -1,0 +1,666 @@
+{
+    "Name":"PC-SAMUEL",
+    "Hardware":{
+        "Mainboard":[
+            {
+                "Name":"ASUS H81M-CS/BR",
+                "SubHardware":{
+                    "SuperIO":[
+                        {
+                            "Name":"Nuvoton NCT6779D",
+                            "SubHardware":{
+
+                            },
+                            "Sensors":{
+                                "Voltage":{
+                                    "CPU VCore":{
+                                        "Min":0.864,
+                                        "Value":0.864,
+                                        "Max":0.864
+                                    },
+                                    "Voltage #2":{
+                                        "Min":0.992000043,
+                                        "Value":0.992000043,
+                                        "Max":0.992000043
+                                    },
+                                    "AVCC":{
+                                        "Min":3.216,
+                                        "Value":3.216,
+                                        "Max":3.216
+                                    },
+                                    "3VCC":{
+                                        "Min":3.216,
+                                        "Value":3.216,
+                                        "Max":3.216
+                                    },
+                                    "Voltage #5":{
+                                        "Min":0.992000043,
+                                        "Value":0.992000043,
+                                        "Max":0.992000043
+                                    },
+                                    "Voltage #6":{
+                                        "Min":2.02400017,
+                                        "Value":2.02400017,
+                                        "Max":2.02400017
+                                    },
+                                    "Voltage #7":{
+                                        "Min":0.91200006,
+                                        "Value":0.91200006,
+                                        "Max":0.91200006
+                                    },
+                                    "3VSB":{
+                                        "Min":3.3920002,
+                                        "Value":3.3920002,
+                                        "Max":3.3920002
+                                    },
+                                    "VBAT":{
+                                        "Min":3.28000021,
+                                        "Value":3.28000021,
+                                        "Max":3.28000021
+                                    },
+                                    "VTT":{
+                                        "Min":1.008,
+                                        "Value":1.008,
+                                        "Max":1.008
+                                    },
+                                    "Voltage #11":{
+                                        "Min":0.208,
+                                        "Value":0.208,
+                                        "Max":0.208
+                                    },
+                                    "Voltage #12":{
+                                        "Min":0.176000014,
+                                        "Value":0.176000014,
+                                        "Max":0.176000014
+                                    },
+                                    "Voltage #13":{
+                                        "Min":0.992000043,
+                                        "Value":0.992000043,
+                                        "Max":0.992000043
+                                    },
+                                    "Voltage #14":{
+                                        "Min":0.992000043,
+                                        "Value":0.992000043,
+                                        "Max":0.992000043
+                                    },
+                                    "Voltage #15":{
+                                        "Min":0.216,
+                                        "Value":0.216,
+                                        "Max":0.216
+                                    }
+                                },
+                                "Clock":{
+
+                                },
+                                "Temperature":{
+                                    "CPU Core":{
+                                        "Min":55.0,
+                                        "Value":55.0,
+                                        "Max":55.0
+                                    },
+                                    "Temperature #1":{
+                                        "Min":44.0,
+                                        "Value":44.0,
+                                        "Max":44.0
+                                    },
+                                    "Temperature #2":{
+                                        "Min":105.0,
+                                        "Value":105.0,
+                                        "Max":105.0
+                                    },
+                                    "Temperature #3":{
+                                        "Min":32.0,
+                                        "Value":32.0,
+                                        "Max":32.0
+                                    },
+                                    "Temperature #4":{
+                                        "Min":102.0,
+                                        "Value":102.0,
+                                        "Max":102.0
+                                    },
+                                    "Temperature #5":{
+                                        "Min":102.0,
+                                        "Value":102.0,
+                                        "Max":102.0
+                                    },
+                                    "Temperature #6":{
+                                        "Min":7.0,
+                                        "Value":7.0,
+                                        "Max":7.0
+                                    }
+                                },
+                                "Load":{
+
+                                },
+                                "Fan":{
+                                    "Fan #1":{
+                                        "Min":2089.0,
+                                        "Value":2089.0,
+                                        "Max":2089.0
+                                    },
+                                    "Fan #2":{
+                                        "Min":2311.0,
+                                        "Value":2311.0,
+                                        "Max":2311.0
+                                    }
+                                },
+                                "Flow":{
+
+                                },
+                                "Control":{
+                                    "Fan Control #1":{
+                                        "Min":78.43137,
+                                        "Value":78.43137,
+                                        "Max":78.43137
+                                    },
+                                    "Fan Control #2":{
+                                        "Min":69.8039246,
+                                        "Value":69.8039246,
+                                        "Max":69.8039246
+                                    },
+                                    "Fan Control #3":{
+                                        "Min":100.0,
+                                        "Value":100.0,
+                                        "Max":100.0
+                                    },
+                                    "Fan Control #4":{
+                                        "Min":100.0,
+                                        "Value":100.0,
+                                        "Max":100.0
+                                    },
+                                    "Fan Control #5":{
+                                        "Min":100.0,
+                                        "Value":100.0,
+                                        "Max":100.0
+                                    }
+                                },
+                                "Level":{
+
+                                },
+                                "Factor":{
+
+                                },
+                                "Power":{
+
+                                },
+                                "Data":{
+
+                                },
+                                "SmallData":{
+
+                                },
+                                "Throughput":{
+
+                                }
+                            }
+                        }
+                    ]
+                },
+                "Sensors":{
+
+                }
+            }
+        ],
+        "SuperIO":[
+
+        ],
+        "CPU":[
+            {
+                "Name":"Intel Core i5-4460",
+                "SubHardware":{
+
+                },
+                "Sensors":{
+                    "Voltage":{
+
+                    },
+                    "Clock":{
+                        "CPU Core #1":{
+                            "Min":3192.60449,
+                            "Value":3192.60449,
+                            "Max":3192.8335
+                        },
+                        "CPU Core #2":{
+                            "Min":3192.60449,
+                            "Value":3192.60449,
+                            "Max":3192.8335
+                        },
+                        "CPU Core #3":{
+                            "Min":3192.60449,
+                            "Value":3192.60449,
+                            "Max":3292.37329
+                        },
+                        "CPU Core #4":{
+                            "Min":3192.60449,
+                            "Value":3192.60449,
+                            "Max":3192.8335
+                        },
+                        "Bus Speed":{
+                            "Min":99.76889,
+                            "Value":99.76889,
+                            "Max":99.77605
+                        }
+                    },
+                    "Temperature":{
+                        "CPU Core #1":{
+                            "Min":53.0,
+                            "Value":53.0,
+                            "Max":55.0
+                        },
+                        "CPU Core #2":{
+                            "Min":54.0,
+                            "Value":55.0,
+                            "Max":55.0
+                        },
+                        "CPU Core #3":{
+                            "Min":52.0,
+                            "Value":52.0,
+                            "Max":54.0
+                        },
+                        "CPU Core #4":{
+                            "Min":51.0,
+                            "Value":51.0,
+                            "Max":54.0
+                        },
+                        "CPU Package":{
+                            "Min":53.0,
+                            "Value":53.0,
+                            "Max":56.0
+                        }
+                    },
+                    "Load":{
+                        "CPU Core #1":{
+                            "Min":0.0,
+                            "Value":0.0,
+                            "Max":100.0
+                        },
+                        "CPU Core #2":{
+                            "Min":37.5,
+                            "Value":37.5,
+                            "Max":100.0
+                        },
+                        "CPU Core #3":{
+                            "Min":25.0,
+                            "Value":37.5,
+                            "Max":100.0
+                        },
+                        "CPU Core #4":{
+                            "Min":25.0,
+                            "Value":50.0,
+                            "Max":100.0
+                        },
+                        "CPU Total":{
+                            "Min":25.0,
+                            "Value":31.25,
+                            "Max":100.0
+                        }
+                    },
+                    "Fan":{
+
+                    },
+                    "Flow":{
+
+                    },
+                    "Control":{
+
+                    },
+                    "Level":{
+
+                    },
+                    "Factor":{
+
+                    },
+                    "Power":{
+                        "CPU Package":{
+                            "Min":25.27882,
+                            "Value":25.27882,
+                            "Max":41.28993
+                        },
+                        "CPU Cores":{
+                            "Min":14.5808859,
+                            "Value":14.5808859,
+                            "Max":31.4038277
+                        },
+                        "CPU Graphics":{
+                            "Min":0.0,
+                            "Value":0.0,
+                            "Max":0.0
+                        },
+                        "CPU DRAM":{
+                            "Min":1.69992971,
+                            "Value":1.69992971,
+                            "Max":2.42458367
+                        }
+                    },
+                    "Data":{
+
+                    },
+                    "SmallData":{
+
+                    },
+                    "Throughput":{
+
+                    }
+                }
+            }
+        ],
+        "RAM":[
+            {
+                "Name":"Generic Memory",
+                "SubHardware":{
+
+                },
+                "Sensors":{
+                    "Voltage":{
+
+                    },
+                    "Clock":{
+
+                    },
+                    "Temperature":{
+
+                    },
+                    "Load":{
+                        "Memory":{
+                            "Min":86.76392,
+                            "Value":86.76392,
+                            "Max":86.79836
+                        }
+                    },
+                    "Fan":{
+
+                    },
+                    "Flow":{
+
+                    },
+                    "Control":{
+
+                    },
+                    "Level":{
+
+                    },
+                    "Factor":{
+
+                    },
+                    "Power":{
+
+                    },
+                    "Data":{
+                        "Used Memory":{
+                            "Min":6.832546,
+                            "Value":6.832546,
+                            "Max":6.83525848
+                        },
+                        "Available Memory":{
+                            "Min":1.03961182,
+                            "Value":1.04232407,
+                            "Max":1.04232407
+                        }
+                    },
+                    "SmallData":{
+
+                    },
+                    "Throughput":{
+
+                    }
+                }
+            }
+        ],
+        "GpuNvidia":[
+            {
+                "Name":"NVIDIA GeForce GTX 1050",
+                "SubHardware":{
+
+                },
+                "Sensors":{
+                    "Voltage":{
+
+                    },
+                    "Clock":{
+                        "GPU Core":{
+                            "Min":1354.00012,
+                            "Value":1354.00012,
+                            "Max":1354.00012
+                        },
+                        "GPU Memory":{
+                            "Min":3504.00024,
+                            "Value":3504.00024,
+                            "Max":3504.00024
+                        },
+                        "GPU Shader":{
+                            "Min":2708.00024,
+                            "Value":2708.00024,
+                            "Max":2708.00024
+                        }
+                    },
+                    "Temperature":{
+                        "GPU Core":{
+                            "Min":44.0,
+                            "Value":44.0,
+                            "Max":44.0
+                        }
+                    },
+                    "Load":{
+                        "GPU Core":{
+                            "Min":0.0,
+                            "Value":0.0,
+                            "Max":1.0
+                        },
+                        "GPU Frame Buffer":{
+                            "Min":1.0,
+                            "Value":1.0,
+                            "Max":1.0
+                        },
+                        "GPU Video Engine":{
+                            "Min":0.0,
+                            "Value":0.0,
+                            "Max":0.0
+                        },
+                        "GPU Bus Interface":{
+                            "Min":0.0,
+                            "Value":0.0,
+                            "Max":1.0
+                        },
+                        "GPU Memory":{
+                            "Min":29.419136,
+                            "Value":29.419136,
+                            "Max":29.4343948
+                        }
+                    },
+                    "Fan":{
+                        "GPU":{
+                            "Min":0.0,
+                            "Value":0.0,
+                            "Max":0.0
+                        }
+                    },
+                    "Flow":{
+
+                    },
+                    "Control":{
+                        "GPU Fan":{
+                            "Min":0.0,
+                            "Value":0.0,
+                            "Max":0.0
+                        }
+                    },
+                    "Level":{
+
+                    },
+                    "Factor":{
+
+                    },
+                    "Power":{
+
+                    },
+                    "Data":{
+
+                    },
+                    "SmallData":{
+                        "GPU Memory Total":{
+                            "Min":2048.0,
+                            "Value":2048.0,
+                            "Max":2048.0
+                        },
+                        "GPU Memory Used":{
+                            "Min":602.5039,
+                            "Value":602.5039,
+                            "Max":602.8164
+                        },
+                        "GPU Memory Free":{
+                            "Min":1445.18359,
+                            "Value":1445.49609,
+                            "Max":1445.49609
+                        }
+                    },
+                    "Throughput":{
+                        "GPU PCIE Rx":{
+                            "Min":0.9765625,
+                            "Value":15.625,
+                            "Max":15.625
+                        },
+                        "GPU PCIE Tx":{
+                            "Min":0.0,
+                            "Value":0.9765625,
+                            "Max":7.8125
+                        }
+                    }
+                }
+            }
+        ],
+        "GpuAti":[
+
+        ],
+        "TBalancer":[
+
+        ],
+        "Heatmaster":[
+
+        ],
+        "HDD":[
+            {
+                "Name":"INTEL SSDSC2KW256G8",
+                "SubHardware":{
+
+                },
+                "Sensors":{
+                    "Voltage":{
+
+                    },
+                    "Clock":{
+
+                    },
+                    "Temperature":{
+                        "Temperature":{
+                            "Min":33.0,
+                            "Value":33.0,
+                            "Max":33.0
+                        }
+                    },
+                    "Load":{
+                        "Used Space":{
+                            "Min":96.5020447,
+                            "Value":96.5020447,
+                            "Max":96.5020447
+                        }
+                    },
+                    "Fan":{
+
+                    },
+                    "Flow":{
+
+                    },
+                    "Control":{
+
+                    },
+                    "Level":{
+                        "Remaining Life":{
+                            "Min":99.0,
+                            "Value":99.0,
+                            "Max":99.0
+                        }
+                    },
+                    "Factor":{
+
+                    },
+                    "Power":{
+
+                    },
+                    "Data":{
+                        "Host Writes":{
+                            "Min":20478.7188,
+                            "Value":20478.7188,
+                            "Max":20478.7188
+                        },
+                        "Host Reads":{
+                            "Min":41363.0625,
+                            "Value":41363.0625,
+                            "Max":41363.0625
+                        }
+                    },
+                    "SmallData":{
+
+                    },
+                    "Throughput":{
+
+                    }
+                }
+            },
+            {
+                "Name":"WDC WD3200BPVT-24JJ5T0",
+                "SubHardware":{
+
+                },
+                "Sensors":{
+                    "Voltage":{
+
+                    },
+                    "Clock":{
+
+                    },
+                    "Temperature":{
+                        "Temperature":{
+                            "Min":31.0,
+                            "Value":31.0,
+                            "Max":31.0
+                        }
+                    },
+                    "Load":{
+                        "Used Space":{
+                            "Min":91.4481,
+                            "Value":91.4481,
+                            "Max":91.4481
+                        }
+                    },
+                    "Fan":{
+
+                    },
+                    "Flow":{
+
+                    },
+                    "Control":{
+
+                    },
+                    "Level":{
+
+                    },
+                    "Factor":{
+
+                    },
+                    "Power":{
+
+                    },
+                    "Data":{
+
+                    },
+                    "SmallData":{
+
+                    },
+                    "Throughput":{
+
+                    }
+                }
+            }
+        ]
+    }
+}

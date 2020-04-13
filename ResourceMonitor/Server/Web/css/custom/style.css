@@ -1,0 +1,214 @@
+/* ---------------------------------------------------
+    DOCUMENT STYLE
+----------------------------------------------------- */
+
+@import "https://fonts.googleapis.com/css?family=Poppins:300,400,500,600,700";
+body {
+    font-family: "Poppins", sans-serif;
+}
+
+p {
+    font-family: "Poppins", sans-serif;
+    font-size: 1.1em;
+    font-weight: 300;
+    line-height: 1.7em;
+    color: #999;
+}
+
+.line {
+    width: 100%;
+    height: 1px;
+    border-bottom: 1px dashed #ddd;
+    margin: 40px 0;
+}
+
+/* ---------------------------------------------------
+    SWIPE AREA CONFIG
+----------------------------------------------------- */
+.swipe-area {
+    /*position: absolute;*/
+    left: 0;
+    top: 0;
+    height: 100%;
+    z-index: 0;
+}
+
+/* ---------------------------------------------------
+    CHART STYLE
+----------------------------------------------------- */
+.chart {
+    position: relative;
+    display: inline-block;
+    width: 135px;
+    height: 135px;
+    /*margin-top: 50px;*/
+    /*margin-bottom: 50px;*/
+    text-align: center;
+}
+
+.chart canvas {
+    position: absolute;
+    top: 0;
+    left: 0;
+}
+
+.percent {
+    display: inline-block;
+    line-height: 135px;
+    z-index: 2;
+}
+
+.percent:after {
+    /*content: '%';*/
+    margin-left: 0.1em;
+    font-size: 0.8em;
+}
+
+.angular {
+    margin-top: 100px;
+}
+
+.angular .chart {
+    margin-top: 0;
+}
+
+.donut-inner {
+    /*margin-top: -100px;*/
+    /*margin-bottom: 100px;*/
+}
+
+.donut-inner h5 {
+    position: absolute;
+    top: 45%;
+    /* centralizar a parte interna do preload (onde fica a animação)*/
+    left: 50%;
+    transform: translate(-50%, -50%);
+}
+
+.donut-inner span {
+    position: absolute;
+    top: 50%;
+    /* centralizar a parte interna do preload (onde fica a animação)*/
+    left: 50%;
+    transform: translate(-50%, -0%);
+    font-size: 13px;
+}
+
+/* ---------------------------------------------------
+    PROGRESS BAR STYLE
+----------------------------------------------------- */
+/*.progress-bar-container {
+    padding-left: 0 !important;
+    padding-right: 0 !important;
+}
+
+.progress-bar-container.col-6 .col {
+    padding-left: 5px !important;
+    padding-right: 5px !important;
+}*/
+
+.progress {
+    border-radius: 100px;
+    background-color: #E1E1E1;
+    height: 14px;
+    box-shadow: 0px 0px 4px 1px rgba(0, 0, 0, 0.192);
+}
+
+.progress-bar {
+    border-radius: 100px;
+    transition: width 0.6s ease, background-color 0.3s 0.3s ease-in;
+}
+
+/*.progress-bar.active {
+    background-color: #007bff;
+}
+
+.progress-bar.success {
+    background-color: green;
+}
+
+.progress-bar.fail {
+    background-color: red;
+}*/
+
+.progress-bar-text {
+    font-weight: 500;
+}
+
+.md-progress {
+    position: relative;
+    overflow: visible;
+}
+
+.md-progress-bar-text {
+    font-weight: 500;
+    position: absolute;
+    top: 0;
+    right: 0%;
+    transform: translate(-50%, -100%);
+    color: #343a40;
+}
+
+.md-progress-bar-label {
+    font-weight: 500;
+    position: absolute;
+    top: 0;
+    left: 0%;
+    transform: translate(-50%, -100%);
+    color: #343a40;
+}
+
+/* ---------------------------------------------------
+    SCROLL DIV STYLE
+----------------------------------------------------- */
+.scrolldiv {
+    position: relative;
+    overflow-y: scroll;
+    height: 100%;
+}
+
+.scrollbar-primary-blue::-webkit-scrollbar-track {
+    -webkit-box-shadow: inset 0 0 6px rgba(0, 0, 0, 0.1);
+    box-shadow: none;
+    background-color: #f5f5f5;
+    border-radius: 10px;
+}
+
+.scrollbar-primary-blue::-webkit-scrollbar {
+    width: 12px;
+    background-color: #f5f5f5;
+}
+
+.scrollbar-primary-blue::-webkit-scrollbar-thumb {
+    border-radius: 10px;
+    box-shadow: none;
+    -webkit-box-shadow: inset 0 0 6px rgba(0, 0, 0, 0.1);
+    background-color: #4682b4;
+}
+
+.scrollbar-primary-blue {
+    scrollbar-color: #4682b4 #f5f5f5;
+}
+
+.thin::-webkit-scrollbar {
+    width: 6px;
+}
+
+/* ---------------------------------------------------
+    CARD SCREEN STYLE
+----------------------------------------------------- */
+@media (max-width: 768px) {
+    .card-body {
+        height: 300px;
+    }
+}
+
+@media (min-width: 768px) {
+    .card-body {
+        height: 181px;
+    }
+}
+
+.card.disabled {
+    color: #cccccc;
+}

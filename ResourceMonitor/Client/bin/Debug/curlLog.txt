@@ -1,0 +1,16 @@
+INICIO DO LOG - 12/04/2020 17:28:08
+[12/04/2020 17:28:11]Curl send.
+[12/04/2020 17:28:11]Curl send.
+[12/04/2020 17:28:11]Curl send.
+[12/04/2020 17:28:12]Curl send.
+[12/04/2020 17:28:12]Curl send.
+[12/04/2020 17:28:13]Curl send.
+[12/04/2020 17:28:13]Curl send.
+[12/04/2020 17:28:13]Curl send.
+[12/04/2020 17:28:13]Curl send.
+[12/04/2020 17:28:14]Curl send.
+[12/04/2020 17:28:14]Curl send.
+[12/04/2020 17:28:14]Curl send.
+[12/04/2020 17:28:14]Curl send.
+[12/04/2020 17:28:15]Curl send.
+[12/04/2020 17:28:18]{Stop()}Referência de objeto não definida para uma instância de um objeto.

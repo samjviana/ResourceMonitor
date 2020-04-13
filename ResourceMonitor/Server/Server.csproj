@@ -1,0 +1,387 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{9FEF7627-BDD1-47CA-ADEC-31A8AB2F8FCE}</ProjectGuid>
+    <OutputType>WinExe</OutputType>
+    <RootNamespace>Server</RootNamespace>
+    <AssemblyName>Server</AssemblyName>
+    <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+    <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
+    <Deterministic>true</Deterministic>
+    <TargetFrameworkProfile />
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <Prefer32Bit>false</Prefer32Bit>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <Prefer32Bit>false</Prefer32Bit>
+  </PropertyGroup>
+  <PropertyGroup>
+    <ApplicationManifest>app.manifest</ApplicationManifest>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="Microsoft.Win32.TaskScheduler, Version=2.8.18.0, Culture=neutral, PublicKeyToken=c416bc1b32d97233, processorArchitecture=MSIL">
+      <HintPath>..\packages\TaskScheduler.2.8.18\lib\net40\Microsoft.Win32.TaskScheduler.dll</HintPath>
+    </Reference>
+    <Reference Include="Newtonsoft.Json, Version=12.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
+      <HintPath>..\packages\Newtonsoft.Json.12.0.3\lib\net40\Newtonsoft.Json.dll</HintPath>
+    </Reference>
+    <Reference Include="System" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Xml.Linq" />
+    <Reference Include="System.Data.DataSetExtensions" />
+    <Reference Include="Microsoft.CSharp" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Deployment" />
+    <Reference Include="System.Drawing" />
+    <Reference Include="System.Windows.Forms" />
+    <Reference Include="System.Xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Logger.cs" />
+    <Compile Include="MainForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="MainForm.Designer.cs">
+      <DependentUpon>MainForm.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Program.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Server.cs" />
+    <Compile Include="SettingsManager.cs" />
+    <Compile Include="StartupManager.cs" />
+    <EmbeddedResource Include="MainForm.resx">
+      <DependentUpon>MainForm.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Properties\Resources.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>Resources.Designer.cs</LastGenOutput>
+      <SubType>Designer</SubType>
+    </EmbeddedResource>
+    <Compile Include="Properties\Resources.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DependentUpon>Resources.resx</DependentUpon>
+      <DesignTime>True</DesignTime>
+    </Compile>
+    <None Include="app.manifest" />
+    <None Include="packages.config" />
+    <None Include="Properties\Settings.settings">
+      <Generator>SettingsSingleFileGenerator</Generator>
+      <LastGenOutput>Settings.Designer.cs</LastGenOutput>
+    </None>
+    <Compile Include="Properties\Settings.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DependentUpon>Settings.settings</DependentUpon>
+      <DesignTimeSharedInput>True</DesignTimeSharedInput>
+    </Compile>
+    <EmbeddedResource Include="Web\css\addons\datatables-select.min.css.map" />
+    <EmbeddedResource Include="Web\css\addons\datatables.min.css.map" />
+    <EmbeddedResource Include="Web\css\addons\directives.min.css.map" />
+    <EmbeddedResource Include="Web\css\addons\flag.min.css.map" />
+    <EmbeddedResource Include="Web\css\addons\jquery.zmd.hierarchical-display.min.css.map" />
+    <EmbeddedResource Include="Web\css\addons\rating.min.css.map" />
+    <EmbeddedResource Include="Web\css\mdb.lite.min.css.map" />
+    <EmbeddedResource Include="Web\css\mdb.min.css.map" />
+    <EmbeddedResource Include="Web\css\modules\animations-extended.min.css.map" />
+    <EmbeddedResource Include="Web\js\addons\datatables-select.min.js.map" />
+    <EmbeddedResource Include="Web\js\addons\datatables.min.js.map" />
+    <EmbeddedResource Include="Web\js\addons\directives.min.js.map" />
+    <EmbeddedResource Include="Web\js\addons\flag.min.js.map" />
+    <EmbeddedResource Include="Web\js\addons\imagesloaded.pkgd.min.js.map" />
+    <EmbeddedResource Include="Web\js\addons\jquery.zmd.hierarchical-display.min.js.map" />
+    <EmbeddedResource Include="Web\js\addons\masonry.pkgd.min.js.map" />
+    <EmbeddedResource Include="Web\js\addons\rating.min.js.map" />
+    <EmbeddedResource Include="Web\js\mdb.lite.min.js.map" />
+    <EmbeddedResource Include="Web\js\mdb.min.js.map" />
+    <EmbeddedResource Include="Web\js\modules\animations-extended.min.js.map" />
+    <EmbeddedResource Include="Web\js\modules\forms-free.min.js.map" />
+    <EmbeddedResource Include="Web\js\modules\scrolling-navbar.min.js.map" />
+    <EmbeddedResource Include="Web\js\modules\treeview.min.js.map" />
+    <EmbeddedResource Include="Web\js\modules\wow.min.js.map" />
+    <EmbeddedResource Include="Web\scss\_custom-styles.scss" />
+    <EmbeddedResource Include="Web\scss\_custom-variables.scss" />
+    <EmbeddedResource Include="Web\scss\addons\_datatables-select.scss" />
+    <EmbeddedResource Include="Web\scss\addons\_datatables.scss" />
+    <EmbeddedResource Include="Web\scss\addons\_directives.scss" />
+    <EmbeddedResource Include="Web\scss\addons\_flag.scss" />
+    <EmbeddedResource Include="Web\scss\addons\_hierarchical-display.scss" />
+    <EmbeddedResource Include="Web\scss\addons\_rating.scss" />
+    <EmbeddedResource Include="Web\scss\core\_colors.scss" />
+    <EmbeddedResource Include="Web\scss\core\_global.scss" />
+    <EmbeddedResource Include="Web\scss\core\_helpers.scss" />
+    <EmbeddedResource Include="Web\scss\core\_masks.scss" />
+    <EmbeddedResource Include="Web\scss\core\_mixins.scss" />
+    <EmbeddedResource Include="Web\scss\core\_typography.scss" />
+    <EmbeddedResource Include="Web\scss\core\_variables.scss" />
+    <EmbeddedResource Include="Web\scss\core\_waves.scss" />
+    <EmbeddedResource Include="Web\scss\core\bootstrap\_functions.scss" />
+    <EmbeddedResource Include="Web\scss\core\bootstrap\_rfs.scss" />
+    <EmbeddedResource Include="Web\scss\core\bootstrap\_variables.scss" />
+    <EmbeddedResource Include="Web\scss\free\_animations-basic.scss" />
+    <EmbeddedResource Include="Web\scss\free\_badges.scss" />
+    <EmbeddedResource Include="Web\scss\free\_buttons.scss" />
+    <EmbeddedResource Include="Web\scss\free\_cards.scss" />
+    <EmbeddedResource Include="Web\scss\free\_carousels.scss" />
+    <EmbeddedResource Include="Web\scss\free\_depreciated.scss" />
+    <EmbeddedResource Include="Web\scss\free\_dropdowns.scss" />
+    <EmbeddedResource Include="Web\scss\free\_footers.scss" />
+    <EmbeddedResource Include="Web\scss\free\_forms.scss" />
+    <EmbeddedResource Include="Web\scss\free\_input-group.scss" />
+    <EmbeddedResource Include="Web\scss\free\_list-group.scss" />
+    <EmbeddedResource Include="Web\scss\free\_loader.scss" />
+    <EmbeddedResource Include="Web\scss\free\_modals.scss" />
+    <EmbeddedResource Include="Web\scss\free\_msc.scss" />
+    <EmbeddedResource Include="Web\scss\free\_navbars.scss" />
+    <EmbeddedResource Include="Web\scss\free\_pagination.scss" />
+    <EmbeddedResource Include="Web\scss\free\_steppers.scss" />
+    <EmbeddedResource Include="Web\scss\free\_tables.scss" />
+    <EmbeddedResource Include="Web\scss\free\_treeview.scss" />
+    <EmbeddedResource Include="Web\scss\free\modules\animations-extended\_module.scss" />
+    <EmbeddedResource Include="Web\scss\free\modules\animations-extended\animations-extended.scss" />
+    <EmbeddedResource Include="Web\scss\mdb-free.scss" />
+    <EmbeddedResource Include="Web\scss\mdb-lite-free.scss" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="App.config" />
+  </ItemGroup>
+  <ItemGroup />
+  <ItemGroup>
+    <EmbeddedResource Include="Web\css\addons\datatables-select.min.css" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Web\css\addons\datatables.min.css" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Web\css\addons\directives.min.css" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Web\css\addons\flag.min.css" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Web\css\addons\jquery.zmd.hierarchical-display.min.css" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Web\css\addons\rating.min.css" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Web\css\bootstrap.css" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Web\css\bootstrap.min.css" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Web\css\custom\easypiechart.css" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Web\css\custom\preloader.css" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Web\css\custom\sidebar.css" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Web\css\custom\style.css" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Web\css\custom\tabs.css" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Web\css\mdb.css" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Web\css\mdb.lite.css" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Web\css\mdb.lite.min.css" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Web\css\mdb.min.css" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Web\css\modules\animations-extended.min.css" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Web\img\overlays\01.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Web\img\overlays\02.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Web\img\overlays\03.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Web\img\overlays\04.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Web\img\overlays\05.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Web\img\overlays\06.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Web\img\overlays\07.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Web\img\overlays\08.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Web\img\overlays\09.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Web\img\svg\arrow_left.svg" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Web\img\svg\arrow_right.svg" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Web\index.html" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Web\js\addons\datatables-select.min.js" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Web\js\addons\datatables.min.js" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Web\js\addons\directives.min.js" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Web\js\addons\flag.min.js" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Web\js\addons\imagesloaded.pkgd.min.js" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Web\js\addons\jquery.zmd.hierarchical-display.min.js" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Web\js\addons\masonry.pkgd.min.js" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Web\js\addons\rating.min.js" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Web\js\bootstrap.js" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Web\js\bootstrap.min.js" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Web\js\custom\jquery.easypiechart.js" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Web\js\custom\jquery.easypiechart.min.js" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Web\js\custom\script.js" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Web\js\jquery.js" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Web\js\jquery.min.js" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Web\js\jquery.touchSwipe.js" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Web\js\jquery.touchSwipe.min.js" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Web\js\mdb.js" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Web\js\mdb.min.js" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Web\js\modules\animations-extended.min.js" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Web\js\modules\forms-free.min.js" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Web\js\modules\scrolling-navbar.min.js" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Web\js\modules\treeview.min.js" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Web\js\modules\wow.min.js" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Web\js\popper.js" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Web\js\popper.min.js" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Web\src\js\free\forms-free.js" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Web\src\js\free\scrolling-navbar.js" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Web\src\js\free\treeview.js" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Web\src\js\free\wow.js" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Web\src\js\vendor\addons\datatables-select.js" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Web\src\js\vendor\addons\datatables.js" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Web\src\js\vendor\addons\imagesloaded.pkgd.min.js" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Web\src\js\vendor\addons\jquery.zmd.hierarchical-display.js" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Web\src\js\vendor\addons\masonry.pkgd.min.js" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Web\src\js\vendor\addons\rating.js" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Web\src\js\vendor\free\bs-custom-file-input.js" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Web\src\js\vendor\free\chart.js" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Web\src\js\vendor\free\chartjs-datalabels.js" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Web\src\js\vendor\free\enhanced-modals.js" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Web\src\js\vendor\free\jquery.easing.js" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Web\src\js\vendor\free\velocity.js" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Web\src\js\vendor\free\waves.js" />
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+</Project>
