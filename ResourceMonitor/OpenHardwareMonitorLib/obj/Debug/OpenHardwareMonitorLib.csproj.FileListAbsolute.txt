@@ -1,0 +1,5 @@
+A:\FTP_Folder\Coding\Visual_Studio\ResourceMonitor\ResourceMonitor\OpenHardwareMonitorLib\Bin\Debug\OpenHardwareMonitorLib.dll
+A:\FTP_Folder\Coding\Visual_Studio\ResourceMonitor\ResourceMonitor\OpenHardwareMonitorLib\Bin\Debug\OpenHardwareMonitorLib.pdb
+A:\FTP_Folder\Coding\Visual_Studio\ResourceMonitor\ResourceMonitor\OpenHardwareMonitorLib\obj\Debug\OpenHardwareMonitorLib.csprojAssemblyReference.cache
+A:\FTP_Folder\Coding\Visual_Studio\ResourceMonitor\ResourceMonitor\OpenHardwareMonitorLib\obj\Debug\OpenHardwareMonitorLib.dll
+A:\FTP_Folder\Coding\Visual_Studio\ResourceMonitor\ResourceMonitor\OpenHardwareMonitorLib\obj\Debug\OpenHardwareMonitorLib.pdb

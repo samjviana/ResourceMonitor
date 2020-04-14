@@ -13,12 +13,26 @@ namespace Client
         public Logger(string logName)
         {
             this.logName = logName;
-            File.AppendAllText(logName, "INICIO DO LOG - " + DateTime.Now.ToString() + Environment.NewLine);
+            try
+            {
+                File.AppendAllText(logName, "INICIO DO LOG - " + DateTime.Now.ToString() + Environment.NewLine);
+            }
+            catch
+            {
+
+            }
         }
 
         public void Log(string logMessage)
         {
-            File.AppendAllText(logName, "[" + DateTime.Now.ToString() + "]" + logMessage + Environment.NewLine);
+            try
+            {
+                File.AppendAllText(logName, "[" + DateTime.Now.ToString() + "]" + logMessage + Environment.NewLine);
+            }
+            catch
+            {
+
+            }
         }
     }
 }

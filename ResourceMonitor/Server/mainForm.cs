@@ -67,7 +67,7 @@ namespace Server
             }
             else
             {
-                trayIcon.Visible = false;
+                //trayIcon.Visible = false;
             }
         }
 
@@ -84,6 +84,8 @@ namespace Server
                     this.serverOutput.Invoke((Action)delegate
                     {
                         this.serverOutput.AppendText(value + Environment.NewLine);
+                        this.serverOutput.SelectionStart = this.serverOutput.Text.Length;
+                        this.serverOutput.ScrollToCaret();
                     });
                 }
                 catch
@@ -98,7 +100,7 @@ namespace Server
         {
             Show();
             WindowState = FormWindowState.Normal;
-            trayIcon.Visible = false;
+            //trayIcon.Visible = false;
         }
 
         private void MainForm_FormClosing(object sender, FormClosingEventArgs e)
@@ -182,7 +184,7 @@ namespace Server
         {
             Show();
             WindowState = FormWindowState.Normal;
-            trayIcon.Visible = false;
+            //trayIcon.Visible = false;
         }
     }
 }

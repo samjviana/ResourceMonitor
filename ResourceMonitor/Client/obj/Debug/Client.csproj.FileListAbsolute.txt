@@ -20,3 +20,4 @@ A:\FTP_Folder\Coding\Visual_Studio\ResourceMonitor\ResourceMonitor\Client\bin\De
 A:\FTP_Folder\Coding\Visual_Studio\ResourceMonitor\ResourceMonitor\Client\obj\Debug\Client.csproj.CopyComplete
 A:\FTP_Folder\Coding\Visual_Studio\ResourceMonitor\ResourceMonitor\Client\obj\Debug\Client.MainForm.resources
 A:\FTP_Folder\Coding\Visual_Studio\ResourceMonitor\ResourceMonitor\Client\bin\Debug\OpenHardwareMonitorLib.dll
+A:\FTP_Folder\Coding\Visual_Studio\ResourceMonitor\ResourceMonitor\Client\bin\Debug\OpenHardwareMonitorLib.pdb

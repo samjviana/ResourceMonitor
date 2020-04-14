@@ -46,9 +46,6 @@
     <Reference Include="NvAPIWrapper">
       <HintPath>..\packages\NvAPIWrapper.dll</HintPath>
     </Reference>
-    <Reference Include="OpenHardwareMonitorLib">
-      <HintPath>..\packages\OpenHardwareMonitorLib.dll</HintPath>
-    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Management" />
@@ -102,6 +99,12 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\OpenHardwareMonitorLib\OpenHardwareMonitorLib.csproj">
+      <Project>{b0397530-545a-471d-bb74-027ae456df1a}</Project>
+      <Name>OpenHardwareMonitorLib</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

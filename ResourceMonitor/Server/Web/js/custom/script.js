@@ -60,9 +60,9 @@ $('.chart').easyPieChart({
         $(this.el).find('.value').text(Math.round(percent) + "%");
     },
     barColor: function (percent) {
-        if(percent >= 100) {
+        if (percent >= 100) {
             return "#FF0000";
-        } else if(percent <= 0) {
+        } else if (percent <= 0) {
             return "#00FF00";
         }
         return perc2color(percent, 100, 0);
@@ -70,9 +70,9 @@ $('.chart').easyPieChart({
 });
 
 function perc2color(perc, min, max) {
-    if(perc >= 100) {
+    if (perc >= 100) {
         return "#FF0000";
-    } else if(perc <= 0) {
+    } else if (perc <= 0) {
         return "#00FF00";
     }
 
@@ -129,33 +129,48 @@ function buildSideBar() {
 
     $.getJSON('computerList.json', function (data) {
         computerData = data;
-        if (!arraysEqual(computerList, data)) {
-            console.log(computerList);
-            console.log(data);
-            var computer_list = document.getElementById("computer_list");
-            computer_list.innerHTML = "";
+        if (data["empty"] == "empty") {
+            return;
+        }
 
-            computerList = data;
+        var computer_list = document.getElementById("computer_list");
+        computer_list.innerHTML = "";
 
-            if (firstTime) {
-                currentComputer = computerList[0];
+        computerList = data;
+
+        if (firstTime) {
+            for (let i = 0; i < computerList["Count"]; i++) {
+                if (computerList["Computers"][i]["State"]) {
+                    currentComputer = computerList["Computers"][i]["Name"];
+                    break;
+                }
+
+            }
+        }
+
+        for (let i = 0; i < computerList["Count"]; i++) {
+            var listElement = document.createElement("li");
+            var anchorElement = document.createElement("a");
+            anchorElement.appendChild(document.createTextNode(computerList["Computers"][i]["Name"]));
+            anchorElement.setAttribute("id", computerList["Computers"][i]["Name"]);
+            anchorElement.setAttribute("onclick", "SetCurrentComputer(this)");
+            listElement.appendChild(anchorElement);
+
+            var sidebar = document.getElementById("computer_list");
+            var find = document.getElementById(computerList["Computers"][i]["Name"]);
+            if (find == null) {
+                sidebar.appendChild(listElement);
             }
 
-            for (let i = 0; i < computerList.length; i++) {
-                var listElement = document.createElement("li");
-                var anchorElement = document.createElement("a");
-                anchorElement.appendChild(document.createTextNode(computerList[i]));
-                anchorElement.setAttribute("id", computerList[i]);
-                anchorElement.setAttribute("onclick", "SetCurrentComputer(this)");
-                listElement.appendChild(anchorElement);
+            try {
+                document.getElementById(currentComputer).parentElement.classList.add("active");
+            } catch {
 
-                var sidebar = document.getElementById("computer_list");
-                var find = document.getElementById(computerList[i]);
-                if (find == null) {
-                    sidebar.appendChild(listElement);
-                }
+            }
+
+            if (!computerList["Computers"][i]["State"]) {
                 try {
-                    document.getElementById(currentComputer).parentElement.classList.add("active");
+                    document.getElementById(computerList["Computers"][i]["Name"]).parentElement.classList.add("offline");
                 } catch {
 
                 }
@@ -165,16 +180,18 @@ function buildSideBar() {
 }
 
 function SetCurrentComputer(element) {
-    var previousComputer = sidebar.getElementsByClassName("active")[0].firstElementChild;
+    if (!element.parentElement.classList.contains("offline")) {
+        var previousComputer = sidebar.getElementsByClassName("active")[0].firstElementChild;
 
-    sidebar.getElementsByClassName("active")[0].classList.remove("active");
+        sidebar.getElementsByClassName("active")[0].classList.remove("active");
 
-    element.parentElement.classList.add("active");
+        element.parentElement.classList.add("active");
 
-    currentComputer = element.getAttribute("id");
+        currentComputer = element.getAttribute("id");
 
-    if (currentComputer != previousComputer.getAttribute("id")) {
-        Loading();
+        if (currentComputer != previousComputer.getAttribute("id")) {
+            Loading();
+        }
     }
 }
 
@@ -204,23 +221,40 @@ function LoadData() {
 
     buildSideBar();
 
+    if (currentComputer == undefined) {
+        return;
+    }
+
     $.getJSON(currentComputer + ".json", function (data) {
         json_data = data;
+        try {
+            var cpu_model = json_data["Hardware"]["CPU"][0]["Name"];
+            var cpu_load = parseFloat(json_data["Hardware"]["CPU"][0]["Sensors"]["Load"]["CPU Total"]["Value"]).toFixed(1);
+            var cpu_temperature = parseFloat(json_data["Hardware"]["CPU"][0]["Sensors"]["Temperature"]["CPU Package"]["Value"]).toFixed(1);
+            var cpu_clock = parseFloat(json_data["Hardware"]["CPU"][0]["Sensors"]["Clock"]["CPU Core #1"]["Value"]).toFixed(1);
+            var cpu_max_clock = parseFloat(json_data["Hardware"]["CPU"][0]["Sensors"]["Clock"]["MaxClockSpeed"]).toFixed(1);
+            var cpu_power = parseFloat(json_data["Hardware"]["CPU"][0]["Sensors"]["Power"]["CPU Package"]["Value"]).toFixed(1);
+        } catch {
 
+        }
         /*
          * CPU
          */
-        var cpu_model = json_data["Hardware"]["CPU"][0]["Name"];
-        var cpu_load = parseFloat(json_data["Hardware"]["CPU"][0]["Sensors"]["Load"]["CPU Total"]["Value"]).toFixed(1);
-        var cpu_temperature = parseFloat(json_data["Hardware"]["CPU"][0]["Sensors"]["Temperature"]["CPU Package"]["Value"]).toFixed(1);
-        var cpu_clock = parseFloat(json_data["Hardware"]["CPU"][0]["Sensors"]["Clock"]["CPU Core #1"]["Value"]).toFixed(1);
-        var cpu_max_clock = parseFloat(json_data["Hardware"]["CPU"][0]["Sensors"]["Clock"]["MaxClockSpeed"]).toFixed(1);
-        var cpu_power = parseFloat(json_data["Hardware"]["CPU"][0]["Sensors"]["Power"]["CPU Package"]["Value"]).toFixed(1);
+        try {
+            var cpu_model = json_data["Hardware"]["CPU"][0]["Name"];
+            var cpu_load = parseFloat(json_data["Hardware"]["CPU"][0]["Sensors"]["Load"]["CPU Total"]["Value"]).toFixed(1);
+            var cpu_temperature = parseFloat(json_data["Hardware"]["CPU"][0]["Sensors"]["Temperature"]["CPU Package"]["Value"]).toFixed(1);
+            var cpu_clock = parseFloat(json_data["Hardware"]["CPU"][0]["Sensors"]["Clock"]["CPU Core #1"]["Value"]).toFixed(1);
+            var cpu_max_clock = parseFloat(json_data["Hardware"]["CPU"][0]["Sensors"]["Clock"]["MaxClockSpeed"]).toFixed(1);
+            var cpu_power = parseFloat(json_data["Hardware"]["CPU"][0]["Sensors"]["Power"]["CPU Package"]["Value"]).toFixed(1);
+        } catch {
+
+        }
 
         document.getElementById("cpu_model").innerHTML = cpu_model;
         document.getElementById("cpu_temperature_value").innerHTML = cpu_temperature + " °C";
         document.getElementById("cpu_clock_value").innerHTML = cpu_clock + " Hz";
-        document.getElementById("cpu_power_value").innerHTML = cpu_power + " V";
+        document.getElementById("cpu_power_value").innerHTML = cpu_power + " W";
 
         $('#cpu_temperature').progressBar(cpu_temperature);
         $('#cpu_clock').progressBar(parseFloat(mapValue(cpu_clock, [0, cpu_max_clock], [0, 100])));

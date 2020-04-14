@@ -18,19 +18,23 @@ namespace Server
         private Thread listenerThread;
         private Dictionary<string, string> computerDatabase;
         private Dictionary<string, DateTime> computerTimes;
+        private Dictionary<string, object> computerStates;
         private List<string> computerList;
         private DateTime currentTime;
         private readonly MainForm mainForm;
         private Logger logger;
+        private int counter;
 
         public Server(int port, MainForm serverParent = null)
         {
             this.port = port;
             this.computerDatabase = new Dictionary<string, string>();
             this.computerTimes = new Dictionary<string, DateTime>();
+            this.computerStates = new Dictionary<string, object>();
             this.computerList = new List<string>();
             this.currentTime = DateTime.Now;
             this.logger = new Logger(Path.Combine(Application.StartupPath, "serverLog.txt"));
+            this.counter = 0;
 
             if(serverParent != null)
             {
@@ -144,7 +148,7 @@ namespace Server
             HttpListenerRequest request = context.Request;
             string requestedFile = request.RawUrl.Substring(1);
 
-            OutputMessage(requestedFile + "requested, total of " + computerList.Count.ToString()) ;
+            OutputMessage(requestedFile + " requested, total of " + computerList.Count.ToString()) ;
 
             if ((DateTime.Now - currentTime).TotalSeconds >= 10.0)
             {
@@ -152,13 +156,14 @@ namespace Server
                 currentTime = DateTime.Now;
             }
 
+            if (requestedFile == "computerList.json")
+            {
+                SendComputerList(context.Response);
+                return;
+            }
+
             if (computerList.Count != 0)
             {
-                if (requestedFile == "computerList.json")
-                {
-                    SendComputerList(context.Response);
-                    return;
-                }
 
                 if (requestedFile.Contains(".json"))
                 {
@@ -171,27 +176,50 @@ namespace Server
 
             if (requestedFile.Contains(".curl"))
             {
-                StreamReader stream = new StreamReader(request.InputStream);
-                string receivedData = stream.ReadToEnd();
-                string computerName = request.RawUrl.Substring(1);
-                computerName = computerName.Substring(0, computerName.IndexOf(".curl"));
-
-                if (!this.computerDatabase.ContainsKey(computerName))
+                try
                 {
-                    this.computerDatabase.Add(computerName, receivedData);
-                    this.computerTimes.Add(computerName, DateTime.Now);
-                    if (!this.computerList.Contains(computerName))
+                    StreamReader stream = new StreamReader(request.InputStream);
+                    string receivedData = stream.ReadToEnd();
+                    string computerName = request.RawUrl.Substring(1);
+                    computerName = computerName.Substring(0, computerName.IndexOf(".curl"));
+
+                    if (!this.computerDatabase.ContainsKey(computerName))
                     {
-                        this.computerList.Add(computerName);
+                        this.computerDatabase.Add(computerName, receivedData);
+                        Console.WriteLine("1: ");
+                        Console.WriteLine(computerDatabase[computerName]);
+                        this.computerTimes.Add(computerName, DateTime.Now);
+                        Console.WriteLine("2: ");
+                        Console.WriteLine(computerTimes[computerName]);
+                        if (!this.computerList.Contains(computerName))
+                        {
+                            Dictionary<string, object> status = new Dictionary<string, object>();
+                            status.Add("Name", computerName);
+                            status.Add("State", true);
+                            this.computerStates.Add(counter.ToString(), status);
+                            this.computerList.Add(computerName);
+                            this.counter++;
+                        }
                     }
-                }
-                else
-                {
-                    this.computerDatabase[computerName] = receivedData;
-                    this.computerTimes[computerName] = DateTime.Now;
-                }
+                    else
+                    {
+                        this.computerDatabase[computerName] = receivedData;
+                        this.computerTimes[computerName] = DateTime.Now;
+                        for(int i = 0; i < computerStates.Count; i++)
+                        {
+                            if(((Dictionary<string, object>)computerStates[i.ToString()])["Name"].ToString() == computerName)
+                            {
+                                ((Dictionary<string, object>)computerStates[i.ToString()])["State"] = true;
+                            }
+                        }
+                    }
 
-                SendComputerData(context.Response, computerName);
+                    SendComputerData(context.Response, computerName);
+                }
+                catch
+                {
+
+                }
                 return;
             }
 
@@ -208,19 +236,20 @@ namespace Server
         private void CheckComputers()
         {
             DateTime referenceTime = DateTime.Now;
-            int iterations = this.computerTimes.Count;
 
-            for (int i = 0; i < iterations; i++)
+            for(int i = 0; i < computerList.Count; i++)
             {
-                if ((referenceTime - computerTimes[computerList[i]]).TotalSeconds >= 10.0)
+                if (((referenceTime - computerTimes[computerList[i]]).TotalSeconds >= 10.0) && Convert.ToBoolean(((Dictionary<string, object>)computerStates[i.ToString()])["State"]))
                 {
+                    Console.WriteLine("1: " + computerList[i]);
+                    Console.WriteLine("2: " + ((Dictionary<string, object>)computerStates[i.ToString()])["Name"].ToString());
+                    Console.WriteLine("3: " + Convert.ToBoolean(((Dictionary<string, object>)computerStates[i.ToString()])["State"]));
                     try
                     {
-                        this.computerDatabase.Remove(computerList[i]);
-                        this.computerTimes.Remove(computerList[i]);
-                        this.computerList.Remove(computerList[i]);
-                        iterations--;
-                        i--;
+                        if(computerList[i] == ((Dictionary<string, object>)computerStates[i.ToString()])["Name"].ToString())
+                        {
+                            ((Dictionary<string, object>)this.computerStates[i.ToString()])["State"] = false;
+                        }
                     }
                     catch
                     {
@@ -232,7 +261,20 @@ namespace Server
 
         private void SendComputerList(HttpListenerResponse response)
         {
-            string json = JsonConvert.SerializeObject(this.computerList);
+            string json;
+
+            if(this.computerList.Count <= 0)
+            {
+                json = "{\"empty\":\"empty\"}";
+            }
+            else
+            {
+                json = "{\"Computers\": ";
+                json += JsonConvert.SerializeObject(this.computerStates);
+                json += ",\"Count\": " + this.counter + "}";
+            }
+
+            Console.WriteLine("1: " + json);
 
             SendJson(response, json);
         }

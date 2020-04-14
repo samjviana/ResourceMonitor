@@ -93,11 +93,11 @@ namespace Client
                         {
                             if (valuesDict.ContainsKey("MaxClockSpeed"))
                             {
-                                valuesDict["MaxClockSpeed"] = GetWmiProperty(@"\\.\root\cimv2", "Win32_Processor", "MaxClockSpeed");
+                                valuesDict["MaxClockSpeed"] = ReadMaxClockSpeed();
                             }
                             else
                             {
-                                valuesDict.Add("MaxClockSpeed", GetWmiProperty(@"\\.\root\cimv2", "Win32_Processor", "MaxClockSpeed"));
+                                valuesDict["MaxClockSpeed"] = ReadMaxClockSpeed();  
                             }
                             /*foreach (var a in ((Dictionary<string, object>)wmiData["CPU0"]))
                             {
@@ -140,6 +140,16 @@ namespace Client
         public string GetJsonData()
         {
             return JsonConvert.SerializeObject(this.computer);
+        }
+
+        private string ReadMaxClockSpeed()
+        {
+            uint eax, edx;
+            uint MSR_TURBO_RATIO_LIMIT = 0x01AD;
+            string maxClockSpeed = "";
+            Ring0.Rdmsr(MSR_TURBO_RATIO_LIMIT, out eax, out edx);
+            maxClockSpeed = (((eax >> 0) & 0xFF) * 100).ToString();
+            return maxClockSpeed;
         }
     }
 }

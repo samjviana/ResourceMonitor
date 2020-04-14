@@ -56,6 +56,13 @@ a[aria-expanded="true"] {
     background: #6778bf;
 }
 
+#sidebar ul li.offline > a,
+a[aria-expanded="true"] {
+    color: #fff;
+    font-weight: 400;
+    background: #a7b3ce;
+}
+
 #sidebar.fixed {
     position: fixed;
     height: 100%;
