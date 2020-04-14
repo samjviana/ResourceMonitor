@@ -5,5 +5,5 @@
 *.css linguist-detectable=false
 *.scss linguist-detectable=false
 *.js linguist-detectable=false
-*.java linguist-detectable=false
+*.java linguist-detectable=java
 *.cs linguist-detectable=true
