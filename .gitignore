@@ -4,3 +4,9 @@
 
 /.vs/
 /ResourceMonitor/.vs/ResourceMonitor/v16
+/ResourceMonitor/Client/bin/
+/ResourceMonitor/Client/obj/
+/ResourceMonitor/OpenHardwareMonitorLib/Bin/
+/ResourceMonitor/OpenHardwareMonitorLib/obj/
+/ResourceMonitor/Server/bin/
+/ResourceMonitor/Server/obj/
