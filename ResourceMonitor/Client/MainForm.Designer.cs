@@ -40,6 +40,7 @@
             this.startWithWindowsCheckBox = new System.Windows.Forms.CheckBox();
             this.closeToTrayCheckBox = new System.Windows.Forms.CheckBox();
             this.minimizeToTrayCheckBox = new System.Windows.Forms.CheckBox();
+            this.timer = new System.Windows.Forms.Timer(this.components);
             this.trayMenu.SuspendLayout();
             this.optionsGroupBox.SuspendLayout();
             this.SuspendLayout();
@@ -89,6 +90,7 @@
             this.serverOutput.Multiline = true;
             this.serverOutput.Name = "serverOutput";
             this.serverOutput.ReadOnly = true;
+            this.serverOutput.ScrollBars = System.Windows.Forms.ScrollBars.Vertical;
             this.serverOutput.Size = new System.Drawing.Size(286, 337);
             this.serverOutput.TabIndex = 5;
             // 
@@ -135,6 +137,10 @@
             this.minimizeToTrayCheckBox.Text = "Minimizar para bandeja";
             this.minimizeToTrayCheckBox.UseVisualStyleBackColor = true;
             // 
+            // timer
+            // 
+            this.timer.Tick += new System.EventHandler(this.timer_Tick);
+            // 
             // MainForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -170,6 +176,7 @@
         private System.Windows.Forms.ToolStripMenuItem expandMenuItem;
         private System.Windows.Forms.ToolStripSeparator toolStripSeparator1;
         private System.Windows.Forms.ToolStripMenuItem exitMenuItem;
+        private System.Windows.Forms.Timer timer;
     }
 }
 

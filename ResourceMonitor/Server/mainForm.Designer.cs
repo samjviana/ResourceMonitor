@@ -201,6 +201,7 @@
             this.serverOutput.Multiline = true;
             this.serverOutput.Name = "serverOutput";
             this.serverOutput.ReadOnly = true;
+            this.serverOutput.ScrollBars = System.Windows.Forms.ScrollBars.Vertical;
             this.serverOutput.Size = new System.Drawing.Size(286, 337);
             this.serverOutput.TabIndex = 4;
             // 

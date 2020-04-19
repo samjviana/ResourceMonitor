@@ -7,17 +7,29 @@ using OpenHardwareMonitor.Hardware;
 using Newtonsoft.Json;
 using System.Reflection;
 using System.Management;
-//using NvAPIWrapper;
+using NvAPIWrapper.GPU;
 
 namespace Client
 {
     class ComputerData
     {
         private Dictionary<string, object> computer;
+        private PhysicalGPU[] nvidiaGpus;
+        private int cpuCoreNumber;
 
         public ComputerData(Computer computer)
         {
             this.computer = new Dictionary<string, object>();
+            this.cpuCoreNumber = 0;
+            try
+            {
+                this.nvidiaGpus = PhysicalGPU.GetPhysicalGPUs();
+            }
+            catch
+            {
+
+            }
+
             this.computer.Add("Name", Environment.MachineName);
             this.computer.Add("Hardware", ParseHardware(computer.Hardware, false));
         }
@@ -48,6 +60,8 @@ namespace Client
                         if (hardware.Sensors.Length > 0)
                         {
                             hardwareDict.Add("Sensors", ParseSensors(hardware.Sensors, (HardwareType)hardwareType));
+                            hardwareDict.Add("Core Number", this.cpuCoreNumber);
+                            this.cpuCoreNumber = 0;
                         }
                         else
                         {
@@ -85,6 +99,8 @@ namespace Client
                 List<object> sensorList = new List<object>();
                 sensorDict = new Dictionary<string, object>();
                 valuesDict = new Dictionary<string, object>();
+                double averageClock = 0;
+                int cores = 0;
                 foreach (var sensor in sensors)
                 {
                     if (sensor.SensorType == (SensorType)sensorType)
@@ -93,21 +109,83 @@ namespace Client
                         {
                             if (valuesDict.ContainsKey("MaxClockSpeed"))
                             {
-                                valuesDict["MaxClockSpeed"] = ReadMaxClockSpeed();
+                                valuesDict["MaxClockSpeed"] = ReadCPUMaxClockSpeed();
                             }
                             else
                             {
-                                valuesDict["MaxClockSpeed"] = ReadMaxClockSpeed();  
+                                valuesDict.Add("MaxClockSpeed", ReadCPUMaxClockSpeed());
                             }
-                            /*foreach (var a in ((Dictionary<string, object>)wmiData["CPU0"]))
+                            if (sensor.Name.Contains("CPU Core"))
                             {
-                                Console.Write("\t" + a.Key);
-                                for(int i = a.Key.Length; i < 25; i++)
-                                {
-                                    Console.Write("_");
-                                }
-                                Console.WriteLine(": " + a.Value);
-                            }*/
+                                averageClock += sensor.Value.GetValueOrDefault();
+                                cores++;
+                            }
+                        }
+                        else if(hardwareType == HardwareType.CPU && sensor.SensorType == SensorType.Power)
+                        {
+                            if(valuesDict.ContainsKey("MaxTDP"))
+                            {
+                                valuesDict["MaxTDP"] = ReadCPUMaxTDP();
+                            }
+                            else
+                            {
+                                valuesDict.Add("MaxTDP", ReadCPUMaxTDP());
+                            }
+                        }
+                        else if(hardwareType == HardwareType.CPU && sensor.SensorType == SensorType.Temperature)
+                        {
+                            if(valuesDict.ContainsKey("MaxTemperature"))
+                            {
+                                valuesDict["MaxTemperature"] = ReadCPUMaxTemperature();
+                            }
+                            else
+                            {
+                                valuesDict.Add("MaxTemperature", ReadCPUMaxTemperature());
+                            }
+                        }
+
+                        if (hardwareType == HardwareType.GpuNvidia && sensor.SensorType == SensorType.Temperature)
+                        {
+                            if (valuesDict.ContainsKey("MaxTemperature"))
+                            {
+                                valuesDict["MaxTemperature"] = ReadGPUMaxTemperature();
+                            }
+                            else
+                            {
+                                valuesDict.Add("MaxTemperature", ReadGPUMaxTemperature());
+                            }
+                        }
+                        else if (hardwareType == HardwareType.GpuNvidia && sensor.SensorType == SensorType.Clock)
+                        {
+                            if (valuesDict.ContainsKey("MaxCoreClock"))
+                            {
+                                valuesDict["MaxCoreClock"] = ReadGPUMaxCoreClock();
+                            }
+                            else
+                            {
+                                valuesDict.Add("MaxCoreClock", ReadGPUMaxCoreClock());
+                            }
+
+                            if (valuesDict.ContainsKey("MaxMemoryClock"))
+                            {
+                                valuesDict["MaxMemoryClock"] = ReadGPUMaxMemoryClock();
+                            }
+                            else
+                            {
+                                valuesDict.Add("MaxMemoryClock", ReadGPUMaxMemoryClock());
+                            }
+                        }
+
+                        if(hardwareType == HardwareType.RAM && sensor.SensorType == SensorType.Data)
+                        {
+                            if(valuesDict.ContainsKey("Total Memory"))
+                            {
+                                valuesDict["Total Memory"] = GetSystemTotalRAM();
+                            }
+                            else
+                            {
+                                valuesDict.Add("Total Memory", GetSystemTotalRAM());
+                            }
                         }
 
                         sensorDict.Add("Value", sensor.Value.GetValueOrDefault());
@@ -116,6 +194,11 @@ namespace Client
 
                         sensorDict = new Dictionary<string, object>();
                     }
+                }
+                if(hardwareType == HardwareType.CPU && cores > 0)
+                {
+                    valuesDict.Add("Average Clock", averageClock / cores);
+                    this.cpuCoreNumber = cores;
                 }
                 sensorsDict.Add(sensorType.ToString(), valuesDict);
             }
@@ -137,19 +220,152 @@ namespace Client
             return "";
         }
 
+        private List<object> GetWmiProperties(string wmiNamespace, string wmiClass, string property)
+        {
+            ManagementScope scope = new ManagementScope(wmiNamespace);
+            ObjectQuery query = new ObjectQuery("SELECT " + property + " FROM " + wmiClass);
+            ManagementObjectSearcher searcher = new ManagementObjectSearcher(scope, query);
+            ManagementObjectCollection collection = searcher.Get();
+
+            List<object> wmiProperties = new List<object>();
+            foreach (ManagementObject wmiObject in collection)
+            {
+                try
+                {
+                    wmiProperties.Add(wmiObject[property]);
+                }
+                catch
+                {
+
+                }
+            }
+
+            return wmiProperties;
+        }
+
         public string GetJsonData()
         {
             return JsonConvert.SerializeObject(this.computer);
         }
 
-        private string ReadMaxClockSpeed()
+        private string ReadCPUMaxClockSpeed()
         {
             uint eax, edx;
-            uint MSR_TURBO_RATIO_LIMIT = 0x01AD;
-            string maxClockSpeed = "";
+            uint MSR_TURBO_RATIO_LIMIT = 0x1AD;
+
             Ring0.Rdmsr(MSR_TURBO_RATIO_LIMIT, out eax, out edx);
-            maxClockSpeed = (((eax >> 0) & 0xFF) * 100).ToString();
-            return maxClockSpeed;
+            float maxClockSpeed = (((eax >> 0) & 0xFF) * 100);
+            
+            return maxClockSpeed.ToString();
+        }
+
+        private string ReadCPUMaxTDP()
+        {
+            uint eax, edx;
+            uint MSR_RAPL_POWER_UNIT = 0x606;
+            uint MSR_RAPL_POWER_INFO = 0x614;
+
+            Ring0.Rdmsr(MSR_RAPL_POWER_UNIT, out eax, out edx);
+            float powerUnit = 1.0f / (1 << (int)(eax & 0xF));
+
+            Ring0.Rdmsr(MSR_RAPL_POWER_INFO, out eax, out edx);
+            float maxTdp = eax & 0x7FFF;
+            maxTdp *= powerUnit;
+
+            return maxTdp.ToString();
+        }
+
+        private string ReadCPUMaxTemperature()
+        {
+            uint eax, edx;
+            uint IA32_TEMPERATURE_TARGET = 0x1A2;
+
+            Ring0.Rdmsr(IA32_TEMPERATURE_TARGET, out eax, out edx);
+            float maxTemperature = (eax >> 16) & 0xFF;
+
+            return maxTemperature.ToString();
+        }
+
+        private string ReadGPUMaxTemperature()
+        {
+            float maxTemperature = 0;
+            try
+            {
+                PhysicalGPU gpu = this.nvidiaGpus[0];
+                GPUThermalSensor[] thermalSensors = gpu.ThermalInformation.ThermalSensors.ToArray();
+
+                foreach (var thermalSensor in thermalSensors)
+                {
+                    maxTemperature = thermalSensor.DefaultMaximumTemperature;
+                    break;
+                }
+            }
+            catch
+            {
+                maxTemperature = -1;
+            }
+
+            return maxTemperature.ToString();
+        }
+
+        private string ReadGPUMaxCoreClock()
+        {
+            float maxCoreClock = 0;
+            try
+            {
+                PhysicalGPU gpu = this.nvidiaGpus[0];
+
+                maxCoreClock = gpu.BoostClockFrequencies.GraphicsClock.Frequency;
+            }
+            catch
+            {
+                maxCoreClock = -1;
+            }
+
+            return maxCoreClock.ToString();
+        }
+
+        private string ReadGPUMaxMemoryClock()
+        {
+            float maxMemoryClock = 0;
+            try
+            {
+                PhysicalGPU gpu = this.nvidiaGpus[0];
+
+                maxMemoryClock = gpu.BoostClockFrequencies.MemoryClock.Frequency;
+            }
+            catch
+            {
+                maxMemoryClock = -1;
+            }
+
+            return maxMemoryClock.ToString();
+        }
+
+        private string GetSystemTotalRAM()
+        {
+            string wmiNamespace = @"\\.\root\cimv2";
+            string wmiClass = "Win32_PhysicalMemory";
+            string property = "Capacity";
+
+            double totalRam = 0;
+            foreach(var ramSize in GetWmiProperties(wmiNamespace, wmiClass, property))
+            {
+                totalRam += Convert.ToDouble(ramSize);
+            }
+            totalRam /= (1 << 30);
+
+            return totalRam.ToString();
         }
     }
 }
+
+/*foreach (var a in ((Dictionary<string, object>)wmiData["CPU0"]))
+{
+    Console.Write("\t" + a.Key);
+    for(int i = a.Key.Length; i < 25; i++)
+    {
+        Console.Write("_");
+    }
+    Console.WriteLine(": " + a.Value);
+}*/

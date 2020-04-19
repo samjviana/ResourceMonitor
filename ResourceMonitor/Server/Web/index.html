@@ -90,7 +90,6 @@
 				</div>
 
 				<ul id="computer_list" class="list-unstyled components">
-
 				</ul>
 
 				<ul class="list-unstyled CTAs">
@@ -140,7 +139,7 @@
 								<span>Recursos</span>
 							</label>
 						</li>
-						<li title="Detalhes">
+						<li title="Sistema Operacional">
 							<label for="tab2" role="button">
 								<svg viewBox="0 0 512 512">
 									<g>
@@ -163,7 +162,7 @@
 									</g>
 								</svg>
 								<br>
-								<span>Detalhes</span>
+								<span>Sistema Operacional</span>
 							</label>
 						</li>
 					</ul>
@@ -189,7 +188,16 @@
 											<div id="cpu_card" class="card">
 												<div class="card-header">
 													<div class="row d-flex justify-content-between pl-2 pr-2">
-														<h5 class="my-1" style="font-size: 20px;">CPU</h5>
+														<div id="cpu_dropdown" class="dropdown" style="font-size: 20px;">
+															<button id="cpu_id" class="dropdown-toggle mr-4 pr-3" type="button"
+																data-toggle="dropdown" aria-haspopup="true"
+																aria-expanded="false">
+																CPU
+															</button>
+															<div id="cpu_list" class="dropdown-menu">
+															</div>
+														</div>
+														<!--h5 class="my-1" style="font-size: 20px;">CPU</h5-->
 														<h5 class="my-1"
 															style="font-size: 17px; transform: translate(0px, 2px);"
 															id="cpu_model">undefined</h5>
@@ -277,7 +285,7 @@
 															id="gpu_model">undefined</h5>
 													</div>
 												</div>
-												<div class="card-body">
+												<div class="card-body gpu">
 													<div class="container h-100">
 														<div class="row justify-content-start h-100">
 															<div class="col-md-5 ">
@@ -290,6 +298,21 @@
 															</div>
 															<div
 																class="col-md-7 d-flex flex-column progress-bar-container">
+																<div class="my-auto text-center">
+																	<div
+																		class="row d-flex justify-content-between ml-1 mr-1">
+																		<small>Memory Load</small>
+																		<small id="gpu_memory_load_value">0 %</small>
+																	</div>
+																	<div id="gpu_memory_load"
+																		class="progress md-progress my-1 z-depth-0 border">
+																		<div id="gpu_memory_load_bar"
+																			class="progress-bar z-depth-0"
+																			role="progressbar" aria-valuenow="0"
+																			aria-valuemin="0" aria-valuemax="100">
+																		</div>
+																	</div>
+																</div>
 																<div class="my-auto text-center">
 																	<div
 																		class="row d-flex justify-content-between ml-1 mr-1">
@@ -324,7 +347,7 @@
 																	<div
 																		class="row d-flex justify-content-between ml-1 mr-1">
 																		<small>Memory Clock</small>
-																		<small id="gpu_memory_clock_value">0V</small>
+																		<small id="gpu_memory_clock_value">0 Hz</small>
 																	</div>
 																	<div id="gpu_memory_clock"
 																		class="progress md-progress my-1 z-depth-0 border">

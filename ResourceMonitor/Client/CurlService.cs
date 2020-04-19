@@ -17,7 +17,7 @@ namespace Client
         private MainForm mainForm;
         private bool isRunning;
         private Computer computer;
-        private Logger logger;
+        private int counter;
 
         public CurlService(string server, MainForm parentForm = null)
         {
@@ -33,7 +33,7 @@ namespace Client
                 RAMEnabled = true
             };
 
-            this.logger = new Logger("curlLog.txt");
+            this.counter = 0;
 
             if (parentForm != null)
             {
@@ -131,7 +131,8 @@ namespace Client
                 webRequest.Abort();
                 response.Close();
 
-                OutputMessage("Curl send.");
+                this.counter++;
+                OutputMessage("[" + this.counter + "] Curl sent.");
             }
             catch (Exception ex)
             {
@@ -146,12 +147,10 @@ namespace Client
             if (this.mainForm != null)
             {
                 this.mainForm.serverOutputText = message;
-                this.logger.Log(message);
             }
             else
             {
                 Console.WriteLine(message);
-                this.logger.Log(message);
             }
         }
     }

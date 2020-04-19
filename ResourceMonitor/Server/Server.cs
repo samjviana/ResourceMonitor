@@ -24,6 +24,7 @@ namespace Server
         private readonly MainForm mainForm;
         private Logger logger;
         private int counter;
+        private bool change;
 
         public Server(int port, MainForm serverParent = null)
         {
@@ -35,6 +36,7 @@ namespace Server
             this.currentTime = DateTime.Now;
             this.logger = new Logger(Path.Combine(Application.StartupPath, "serverLog.txt"));
             this.counter = 0;
+            this.change = false;
 
             if(serverParent != null)
             {
@@ -148,6 +150,8 @@ namespace Server
             HttpListenerRequest request = context.Request;
             string requestedFile = request.RawUrl.Substring(1);
 
+            Console.WriteLine(requestedFile);
+
             OutputMessage(requestedFile + " requested, total of " + computerList.Count.ToString()) ;
 
             if ((DateTime.Now - currentTime).TotalSeconds >= 10.0)
@@ -158,7 +162,14 @@ namespace Server
 
             if (requestedFile == "computerList.json")
             {
-                SendComputerList(context.Response);
+                try
+                {
+                    SendComputerList(context.Response);
+                }
+                catch
+                {
+
+                }
                 return;
             }
 
@@ -186,11 +197,11 @@ namespace Server
                     if (!this.computerDatabase.ContainsKey(computerName))
                     {
                         this.computerDatabase.Add(computerName, receivedData);
-                        Console.WriteLine("1: ");
-                        Console.WriteLine(computerDatabase[computerName]);
+                        //Console.WriteLine("1: ");
+                        //Console.WriteLine(computerDatabase[computerName]);
                         this.computerTimes.Add(computerName, DateTime.Now);
-                        Console.WriteLine("2: ");
-                        Console.WriteLine(computerTimes[computerName]);
+                        //Console.WriteLine("2: ");
+                        //Console.WriteLine(computerTimes[computerName]);
                         if (!this.computerList.Contains(computerName))
                         {
                             Dictionary<string, object> status = new Dictionary<string, object>();
@@ -200,6 +211,7 @@ namespace Server
                             this.computerList.Add(computerName);
                             this.counter++;
                         }
+                        this.change = true;
                     }
                     else
                     {
@@ -241,9 +253,9 @@ namespace Server
             {
                 if (((referenceTime - computerTimes[computerList[i]]).TotalSeconds >= 10.0) && Convert.ToBoolean(((Dictionary<string, object>)computerStates[i.ToString()])["State"]))
                 {
-                    Console.WriteLine("1: " + computerList[i]);
+                    /*Console.WriteLine("1: " + computerList[i]);
                     Console.WriteLine("2: " + ((Dictionary<string, object>)computerStates[i.ToString()])["Name"].ToString());
-                    Console.WriteLine("3: " + Convert.ToBoolean(((Dictionary<string, object>)computerStates[i.ToString()])["State"]));
+                    Console.WriteLine("3: " + Convert.ToBoolean(((Dictionary<string, object>)computerStates[i.ToString()])["State"]));*/
                     try
                     {
                         if(computerList[i] == ((Dictionary<string, object>)computerStates[i.ToString()])["Name"].ToString())
@@ -271,12 +283,15 @@ namespace Server
             {
                 json = "{\"Computers\": ";
                 json += JsonConvert.SerializeObject(this.computerStates);
-                json += ",\"Count\": " + this.counter + "}";
+                json += ",\"Count\": " + this.counter;
+                json += ",\"Change\": \"" + this.change + "\"}";
             }
 
-            Console.WriteLine("1: " + json);
+            //Console.WriteLine("1: " + json);
 
             SendJson(response, json);
+
+            this.change = false;
         }
 
         private void SendComputerData(HttpListenerResponse response, string computerName)
@@ -292,6 +307,14 @@ namespace Server
                 json = "";
             }
 
+            try
+            {
+                File.WriteAllText(computerName + ".json", json);
+            }
+            catch
+            {
+
+            }
             SendJson(response, json);
         }
 

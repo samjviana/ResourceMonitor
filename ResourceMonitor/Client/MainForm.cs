@@ -23,6 +23,8 @@ namespace Client
         {
             InitializeComponent();
 
+            this.timer.Start();
+
             this.logger = new Logger("log.txt");
 
             this.curlService = new CurlService("http://samjviana.ddns.net:8084/", this);
@@ -77,13 +79,20 @@ namespace Client
 
         private void ConfigStartup(Boolean add)
         {
-            if (add)
+            try
             {
-                StartupManager.AddToStartup();
+                if (add)
+                {
+                    StartupManager.AddToStartup();
+                }
+                else
+                {
+                    StartupManager.RemoveFromStartup();
+                }
             }
-            else
+            catch
             {
-                StartupManager.RemoveFromStartup();
+
             }
         }
 
@@ -177,7 +186,7 @@ namespace Client
             }
             else
             {
-                trayIcon.Visible = false;
+                //trayIcon.Visible = false;
             }
         }
 
@@ -201,7 +210,18 @@ namespace Client
         {
             Show();
             WindowState = FormWindowState.Normal;
-            trayIcon.Visible = false;
+            //trayIcon.Visible = false;
+        }
+
+        private void timer_Tick(object sender, EventArgs e)
+        {
+            //this.serverOutput.AppendText("curlService.IsRunning: " + curlService.IsRunning + Environment.NewLine);
+            if(!curlService.IsRunning)
+            {
+                curlService = new CurlService("http://samjviana.ddns.net:8084/", this);
+
+                this.curlService.Start();
+            }
         }
     }
 }

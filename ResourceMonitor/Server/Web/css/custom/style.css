@@ -201,14 +201,36 @@ p {
     .card-body {
         height: 300px;
     }
+    .card-body.gpu {
+        height: 345px;
+    }
 }
 
 @media (min-width: 768px) {
     .card-body {
         height: 181px;
     }
+    .card-body.gpu .progress-bar-container{
+        transform: translate(0px, -10px);
+    }
 }
 
 .card.disabled {
     color: #cccccc;
+}
+
+
+
+button {
+    background-color: Transparent;
+    background-repeat:no-repeat;
+    font-weight: 300;
+    border: none;
+    cursor: pointer;
+    overflow: hidden;
+    outline: none;
+}
+
+button:focus {
+    outline: none;
 }

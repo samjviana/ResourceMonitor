@@ -130,6 +130,14 @@ body h1 {
     /*width: 33%;*/
 }
 
+.tabs.tabs-1 .slider {
+    width: 100%;
+}
+
+.tabs.tabs-1 .slider .indicator {
+    /*width: 50%;*/
+}
+
 .tabs.tabs-2 .slider {
     width: 50%;
 }

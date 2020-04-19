@@ -21,3 +21,4 @@ A:\FTP_Folder\Coding\Visual_Studio\ResourceMonitor\ResourceMonitor\Client\obj\De
 A:\FTP_Folder\Coding\Visual_Studio\ResourceMonitor\ResourceMonitor\Client\obj\Debug\Client.MainForm.resources
 A:\FTP_Folder\Coding\Visual_Studio\ResourceMonitor\ResourceMonitor\Client\bin\Debug\OpenHardwareMonitorLib.dll
 A:\FTP_Folder\Coding\Visual_Studio\ResourceMonitor\ResourceMonitor\Client\bin\Debug\OpenHardwareMonitorLib.pdb
+A:\FTP_Folder\Coding\Visual_Studio\ResourceMonitor\ResourceMonitor\Client\bin\Debug\NvAPIWrapper.dll
