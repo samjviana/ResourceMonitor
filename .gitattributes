@@ -1,9 +1,0 @@
-﻿################################################################################
-# Este arquivo .gitattributes foi criado automaticamente pelo Microsoft(R) Visual Studio.
-################################################################################
-
-*.css linguist-detectable=false
-*.scss linguist-detectable=false
-*.js linguist-detectable=false
-*.java linguist-detectable=true
-*.cs linguist-detectable=true
