@@ -233,7 +233,7 @@ function Loading() {
         var hdd_content = document.getElementById("hdd_content");
         hdd_content.innerHTML = "";
 
-        LoadData();
+        setTimeout(LoadData, 750);
 
         setTimeout(Loaded, 2000);
     });
@@ -402,9 +402,11 @@ function BuildCpuCard() {
 
     if (json_data["Hardware"]["CPU"].length > 1) {
         document.getElementById("cpu_id").innerHTML = "CPU#" + cpu_id;
+        document.getElementById("cpu_id").setAttribute("style", "");
         document.getElementById("cpu_list").hidden = false;
     } else {
         document.getElementById("cpu_id").innerHTML = "CPU";
+        document.getElementById("cpu_id").setAttribute("style", "cursor: default");
         document.getElementById("cpu_list").hidden = true;
     }
 
