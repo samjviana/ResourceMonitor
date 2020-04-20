@@ -126,6 +126,7 @@
             this.closeToTrayCheckBox.TabIndex = 1;
             this.closeToTrayCheckBox.Text = "Fechar para bandeja";
             this.closeToTrayCheckBox.UseVisualStyleBackColor = true;
+            this.closeToTrayCheckBox.CheckedChanged += new System.EventHandler(this.closeToTrayCheckBox_CheckedChanged);
             // 
             // minimizeToTrayCheckBox
             // 
@@ -136,6 +137,7 @@
             this.minimizeToTrayCheckBox.TabIndex = 0;
             this.minimizeToTrayCheckBox.Text = "Minimizar para bandeja";
             this.minimizeToTrayCheckBox.UseVisualStyleBackColor = true;
+            this.minimizeToTrayCheckBox.CheckedChanged += new System.EventHandler(this.minimizeToTrayCheckBox_CheckedChanged);
             // 
             // timer
             // 

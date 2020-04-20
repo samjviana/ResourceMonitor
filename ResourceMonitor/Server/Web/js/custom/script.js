@@ -132,15 +132,12 @@ function BuildSideBar() {
     }
 
     $.getJSON('computerList.json', function (data) {
-        console.log(1);
         if (data["empty"] == "empty") {
             return;
         }
-        console.log(2);
         if(data["Change"] == "False" && !firstTime) {
             return;
         }
-        console.log(3);
 
         computerData = data;
 
@@ -267,12 +264,14 @@ function LoadData() {
             gpu_chart.options.barColor = "#E1E1E1";
             gpu_chart.update();
 
+            $('#gpu_memory_load').progressBar(0);
             $('#gpu_temperature').progressBar(0);
             $('#gpu_core_clock').progressBar(0);
             $('#gpu_memory_clock').progressBar(0);
 
             document.getElementById("gpu_card").classList.add("disabled")
             document.getElementById("gpu_model").innerHTML = "-";
+            document.getElementById("gpu_memory_load_value").innerHTML = "-";
             document.getElementById("gpu_temperature_value").innerHTML = "-";
             document.getElementById("gpu_core_clock_value").innerHTML = "-";
             document.getElementById("gpu_memory_clock_value").innerHTML = "-";
@@ -436,7 +435,11 @@ function BuildCpuCard() {
     try {
         var cpu_model = json_data["Hardware"]["CPU"][cpu_id]["Name"];
         var cpu_load = parseFloat(json_data["Hardware"]["CPU"][cpu_id]["Sensors"]["Load"]["CPU Total"]["Value"]).toFixed(1);
-        var cpu_temperature = parseFloat(json_data["Hardware"]["CPU"][cpu_id]["Sensors"]["Temperature"]["CPU Package"]["Value"]).toFixed(1);
+        if(json_data["Hardware"]["CPU"][cpu_id]["Sensors"]["Temperature"]["CPU Package"] == undefined) {
+            var cpu_temperature = parseFloat(json_data["Hardware"]["CPU"][cpu_id]["Sensors"]["Temperature"]["Average Temperature"]).toFixed(1);
+        } else {
+            var cpu_temperature = parseFloat(json_data["Hardware"]["CPU"][cpu_id]["Sensors"]["Temperature"]["CPU Package"]["Value"]).toFixed(1);
+        }
         var cpu_max_temperature = parseFloat(json_data["Hardware"]["CPU"][cpu_id]["Sensors"]["Temperature"]["MaxTemperature"]).toFixed(1);
         var cpu_clock = parseFloat(json_data["Hardware"]["CPU"][cpu_id]["Sensors"]["Clock"]["Average Clock"]).toFixed(1);
         var cpu_max_clock = parseFloat(json_data["Hardware"]["CPU"][cpu_id]["Sensors"]["Clock"]["MaxClockSpeed"]).toFixed(1);
@@ -449,11 +452,16 @@ function BuildCpuCard() {
     document.getElementById("cpu_model").innerHTML = cpu_model;
     document.getElementById("cpu_temperature_value").innerHTML = cpu_temperature + " °C";
     document.getElementById("cpu_clock_value").innerHTML = cpu_clock + " MHz";
-    document.getElementById("cpu_power_value").innerHTML = cpu_power + " W";
+    if(cpu_power == undefined) {
+        document.getElementById("cpu_power_value").innerHTML = "-";
+        $('#cpu_power').progressBar(0);
+    } else {
+        document.getElementById("cpu_power_value").innerHTML = cpu_power + " W";
+        $('#cpu_power').progressBar(parseFloat(mapValue(cpu_power, [0, cpu_max_power], [0, 100])));
+    }
 
     $('#cpu_temperature').progressBar(parseFloat(mapValue(cpu_temperature, [0, cpu_max_temperature], [0, 100])));
     $('#cpu_clock').progressBar(parseFloat(mapValue(cpu_clock, [0, cpu_max_clock], [0, 100])));
-    $('#cpu_power').progressBar(parseFloat(mapValue(cpu_power, [0, cpu_max_power], [0, 100])));
 
     var cpu_chart = window.chart = $('#cpu_load').data('easyPieChart');
     cpu_chart.update(cpu_load);

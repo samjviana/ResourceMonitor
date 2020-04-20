@@ -150,8 +150,6 @@ namespace Server
             HttpListenerRequest request = context.Request;
             string requestedFile = request.RawUrl.Substring(1);
 
-            Console.WriteLine(requestedFile);
-
             OutputMessage(requestedFile + " requested, total of " + computerList.Count.ToString()) ;
 
             if ((DateTime.Now - currentTime).TotalSeconds >= 10.0)
@@ -221,6 +219,10 @@ namespace Server
                         {
                             if(((Dictionary<string, object>)computerStates[i.ToString()])["Name"].ToString() == computerName)
                             {
+                                if(!(bool)((Dictionary<string, object>)computerStates[i.ToString()])["State"])
+                                {
+                                    this.change = true;
+                                }
                                 ((Dictionary<string, object>)computerStates[i.ToString()])["State"] = true;
                             }
                         }
@@ -261,6 +263,7 @@ namespace Server
                         if(computerList[i] == ((Dictionary<string, object>)computerStates[i.ToString()])["Name"].ToString())
                         {
                             ((Dictionary<string, object>)this.computerStates[i.ToString()])["State"] = false;
+                            this.change = true;
                         }
                     }
                     catch
@@ -287,7 +290,7 @@ namespace Server
                 json += ",\"Change\": \"" + this.change + "\"}";
             }
 
-            //Console.WriteLine("1: " + json);
+            Console.WriteLine("1: " + json);
 
             SendJson(response, json);
 

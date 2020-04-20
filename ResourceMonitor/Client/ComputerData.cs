@@ -8,6 +8,8 @@ using Newtonsoft.Json;
 using System.Reflection;
 using System.Management;
 using NvAPIWrapper.GPU;
+using System.IO;
+using System.Windows.Forms;
 
 namespace Client
 {
@@ -16,11 +18,13 @@ namespace Client
         private Dictionary<string, object> computer;
         private PhysicalGPU[] nvidiaGpus;
         private int cpuCoreNumber;
+        private bool msrRdError;
 
         public ComputerData(Computer computer)
         {
             this.computer = new Dictionary<string, object>();
             this.cpuCoreNumber = 0;
+            this.msrRdError = false;
             try
             {
                 this.nvidiaGpus = PhysicalGPU.GetPhysicalGPUs();
@@ -100,6 +104,7 @@ namespace Client
                 sensorDict = new Dictionary<string, object>();
                 valuesDict = new Dictionary<string, object>();
                 double averageClock = 0;
+                double averageTemperature = 0;
                 int cores = 0;
                 foreach (var sensor in sensors)
                 {
@@ -119,6 +124,14 @@ namespace Client
                             {
                                 averageClock += sensor.Value.GetValueOrDefault();
                                 cores++;
+                                if (valuesDict.ContainsKey("Average Clock"))
+                                {
+                                    valuesDict["Average Clock"] = averageClock / cores;
+                                }
+                                else
+                                {
+                                    valuesDict.Add("Average Clock", averageClock / cores);
+                                }
                             }
                         }
                         else if(hardwareType == HardwareType.CPU && sensor.SensorType == SensorType.Power)
@@ -142,6 +155,20 @@ namespace Client
                             {
                                 valuesDict.Add("MaxTemperature", ReadCPUMaxTemperature());
                             }
+                            if (sensor.Name.Contains("CPU Core"))
+                            {
+                                averageTemperature += sensor.Value.GetValueOrDefault();
+                                cores++;
+                                if (valuesDict.ContainsKey("Average Temperature"))
+                                {
+                                    valuesDict["Average Temperature"] = averageTemperature / cores;
+                                }
+                                else
+                                {
+                                    valuesDict.Add("Average Temperature", averageTemperature / cores);
+                                }
+                            }
+
                         }
 
                         if (hardwareType == HardwareType.GpuNvidia && sensor.SensorType == SensorType.Temperature)
@@ -197,8 +224,11 @@ namespace Client
                 }
                 if(hardwareType == HardwareType.CPU && cores > 0)
                 {
-                    valuesDict.Add("Average Clock", averageClock / cores);
                     this.cpuCoreNumber = cores;
+                    if(msrRdError)
+                    {
+                        valuesDict["MaxClockSpeed"] = GetMaxCPUClockWMI();
+                    }
                 }
                 sensorsDict.Add(sensorType.ToString(), valuesDict);
             }
@@ -252,10 +282,11 @@ namespace Client
         {
             uint eax, edx;
             uint MSR_TURBO_RATIO_LIMIT = 0x1AD;
+            uint MSR_PLATFORM_INFO = 0xCE;
 
             Ring0.Rdmsr(MSR_TURBO_RATIO_LIMIT, out eax, out edx);
             float maxClockSpeed = (((eax >> 0) & 0xFF) * 100);
-            
+
             return maxClockSpeed.ToString();
         }
 
@@ -349,13 +380,28 @@ namespace Client
             string property = "Capacity";
 
             double totalRam = 0;
-            foreach(var ramSize in GetWmiProperties(wmiNamespace, wmiClass, property))
+            foreach (var ramSize in GetWmiProperties(wmiNamespace, wmiClass, property))
             {
                 totalRam += Convert.ToDouble(ramSize);
             }
             totalRam /= (1 << 30);
 
             return totalRam.ToString();
+        }
+
+        private string GetMaxCPUClockWMI()
+        {
+            string wmiNamespace = @"\\.\root\cimv2";
+            string wmiClass = "Win32_Processor";
+            string property = "MaxClockSpeed";
+
+            double maxClockSpeed = 0;
+            foreach (var result in GetWmiProperties(wmiNamespace, wmiClass, property))
+            {
+                maxClockSpeed = Convert.ToDouble(result);
+            }
+
+            return maxClockSpeed.ToString();
         }
     }
 }

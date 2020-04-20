@@ -20,6 +20,7 @@ namespace Client
 
         public void Save(MainForm mainForm)
         {
+            this.settings = new Dictionary<string, object>();
             foreach (Control control in mainForm.Controls)
             {
                 if (control.GetType() == typeof(CheckBox))

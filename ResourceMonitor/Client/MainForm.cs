@@ -75,6 +75,16 @@ namespace Client
         private void startWithWindowsCheckBox_CheckedChanged(object sender, EventArgs e)
         {
             ConfigStartup(startWithWindowsCheckBox.Checked);
+            try
+            {
+                settingsManager.Save(this);
+            }
+            catch
+            {
+                this.serverOutput.AppendText("Erro ao salvar configurações" + Environment.NewLine);
+                this.logger.Log("Erro ao salvar configurações.");
+            }
+
         }
 
         private void ConfigStartup(Boolean add)
@@ -134,21 +144,24 @@ namespace Client
 
         private void MainForm_FormClosing(object sender, FormClosingEventArgs e)
         {
-            curlService.Stop();
-            try
-            {
-                settingsManager.Save(this);
-            }
-            catch
-            {
-                this.serverOutput.AppendText("Erro ao salvar configurações" + Environment.NewLine);
-                this.logger.Log("Erro ao salvar configurações.");
-            }
             if (closeToTrayCheckBox.Checked)
             {
                 e.Cancel = true;
                 Hide();
                 trayIcon.Visible = true;
+            }
+            else
+            {
+                curlService.Stop();
+                try
+                {
+                    settingsManager.Save(this);
+                }
+                catch
+                {
+                    this.serverOutput.AppendText("Erro ao salvar configurações" + Environment.NewLine);
+                    this.logger.Log("Erro ao salvar configurações.");
+                }
             }
         }
 
@@ -221,6 +234,32 @@ namespace Client
                 curlService = new CurlService("http://samjviana.ddns.net:8084/", this);
 
                 this.curlService.Start();
+            }
+        }
+
+        private void closeToTrayCheckBox_CheckedChanged(object sender, EventArgs e)
+        {
+            try
+            {
+                settingsManager.Save(this);
+            }
+            catch
+            {
+                this.serverOutput.AppendText("Erro ao salvar configurações" + Environment.NewLine);
+                this.logger.Log("Erro ao salvar configurações.");
+            }
+        }
+
+        private void minimizeToTrayCheckBox_CheckedChanged(object sender, EventArgs e)
+        {
+            try
+            {
+                settingsManager.Save(this);
+            }
+            catch
+            {
+                this.serverOutput.AppendText("Erro ao salvar configurações" + Environment.NewLine);
+                this.logger.Log("Erro ao salvar configurações.");
             }
         }
     }
