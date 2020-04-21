@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
+using System.Diagnostics;
 using System.Drawing;
 using System.IO;
 using System.Linq;
@@ -16,16 +17,14 @@ namespace Server
     {
         private Server server;
         private SettingsManager settingsManager;
-        private Logger logger;
 
         public MainForm()
         {
             InitializeComponent();
 
-            this.logger = new Logger(Path.Combine(Application.StartupPath, "mainFormServer.txt"));
-
             server = new Server(Convert.ToInt32(this.portField.Value), this);
             server.Start();
+            server.StartDiscovery();
             startButton.Enabled = false;
 
             string configFileName = Path.ChangeExtension(Application.ExecutablePath, ".config");
@@ -65,10 +64,6 @@ namespace Server
                 Hide();
                 trayIcon.Visible = true;
             }
-            else
-            {
-                //trayIcon.Visible = false;
-            }
         }
 
         public string serverOutputText
@@ -88,11 +83,10 @@ namespace Server
                         this.serverOutput.ScrollToCaret();
                     });
                 }
-                catch
+                catch(Exception ex)
                 {
-
+                    ReportError(ex.Message);
                 }
-                logger.Log(value);
             }
         }
 
@@ -100,7 +94,6 @@ namespace Server
         {
             Show();
             WindowState = FormWindowState.Normal;
-            //trayIcon.Visible = false;
         }
 
         private void MainForm_FormClosing(object sender, FormClosingEventArgs e)
@@ -184,7 +177,32 @@ namespace Server
         {
             Show();
             WindowState = FormWindowState.Normal;
-            //trayIcon.Visible = false;
+        }
+
+        private static void ReportError(string Message)
+        {
+            StackFrame CallStack = new StackFrame(1, true);
+            Console.Write("Error: " + Message + ", File: " + CallStack.GetFileName() + ", Line: " + CallStack.GetFileLineNumber());
+        }
+
+        private void button1_Click(object sender, EventArgs e)
+        {
+            string discoveryData = server.GetDiscoveryData();
+            if (discoveryData == null)
+            {
+                MessageBox.Show("A descoberta de rede ainda não foi finalizada");
+            }
+            else
+            {
+                try
+                {
+                    File.WriteAllText("Discovery.json", discoveryData);
+                }
+                catch
+                {
+
+                }
+            }
         }
     }
 }

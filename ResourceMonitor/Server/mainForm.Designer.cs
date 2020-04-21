@@ -45,6 +45,7 @@
             this.toolStripSeparator1 = new System.Windows.Forms.ToolStripSeparator();
             this.exitMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.serverOutput = new System.Windows.Forms.TextBox();
+            this.button1 = new System.Windows.Forms.Button();
             this.optionsGroupBox.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.portField)).BeginInit();
             this.trayMenu.SuspendLayout();
@@ -83,6 +84,7 @@
             // optionsGroupBox
             // 
             this.optionsGroupBox.Controls.Add(this.portField);
+            this.optionsGroupBox.Controls.Add(this.button1);
             this.optionsGroupBox.Controls.Add(this.ipHostnameLabel);
             this.optionsGroupBox.Controls.Add(this.startWithWindowsCheckBox);
             this.optionsGroupBox.Controls.Add(this.closeToTrayCheckBox);
@@ -205,6 +207,16 @@
             this.serverOutput.Size = new System.Drawing.Size(286, 337);
             this.serverOutput.TabIndex = 4;
             // 
+            // button1
+            // 
+            this.button1.Location = new System.Drawing.Point(9, 240);
+            this.button1.Name = "button1";
+            this.button1.Size = new System.Drawing.Size(75, 40);
+            this.button1.TabIndex = 5;
+            this.button1.Text = "Discovery Data";
+            this.button1.UseVisualStyleBackColor = true;
+            this.button1.Click += new System.EventHandler(this.button1_Click);
+            // 
             // MainForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -248,6 +260,7 @@
         private System.Windows.Forms.ToolStripMenuItem expandMenuItem;
         private System.Windows.Forms.ToolStripSeparator toolStripSeparator1;
         private System.Windows.Forms.ToolStripMenuItem exitMenuItem;
+        private System.Windows.Forms.Button button1;
     }
 }
 

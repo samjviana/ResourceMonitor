@@ -1,9 +1,11 @@
 ﻿using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Net;
+using System.Net.NetworkInformation;
 using System.Reflection;
 using System.Text;
 using System.Threading;
@@ -22,19 +24,20 @@ namespace Server
         private List<string> computerList;
         private DateTime currentTime;
         private readonly MainForm mainForm;
-        private Logger logger;
         private int counter;
         private bool change;
+        private SnmpManager snmpManager;
 
         public Server(int port, MainForm serverParent = null)
         {
+            this.snmpManager = new SnmpManager();
+
             this.port = port;
             this.computerDatabase = new Dictionary<string, string>();
             this.computerTimes = new Dictionary<string, DateTime>();
             this.computerStates = new Dictionary<string, object>();
             this.computerList = new List<string>();
             this.currentTime = DateTime.Now;
-            this.logger = new Logger(Path.Combine(Application.StartupPath, "serverLog.txt"));
             this.counter = 0;
             this.change = false;
 
@@ -50,6 +53,7 @@ namespace Server
             }
             catch (Exception ex)
             {
+                ReportError(ex.Message);
                 OutputMessage("{Server()}" + ex.Message);
                 this.listener = null;
             }
@@ -91,6 +95,7 @@ namespace Server
             }
             catch (Exception ex)
             {
+                ReportError(ex.Message);
                 OutputMessage("{Start()}" + ex.Message);
                 return false;
             }
@@ -99,6 +104,7 @@ namespace Server
 
         public Boolean Stop()
         {
+            StopDiscovery();
             if (PlatformNotSupported())
             {
                 return false;
@@ -112,10 +118,30 @@ namespace Server
             }
             catch (Exception ex)
             {
+                ReportError(ex.Message);
                 OutputMessage("{Stop()}" + ex.Message);
                 return false;
             }
             return true;
+        }
+
+        public void StartDiscovery()
+        {
+            this.snmpManager.StartDiscovery();
+        }
+
+        public void StopDiscovery()
+        {
+            this.snmpManager.StopDiscovery();
+        }
+
+        public string GetDiscoveryData()
+        {
+            if(snmpManager.DiscoveryDone)
+            {
+                return snmpManager.GetJsonData();
+            }
+            return null;
         }
 
         private void HandleRequests()
@@ -143,6 +169,7 @@ namespace Server
             }
             catch (Exception ex)
             {
+                ReportError(ex.Message);
                 OutputMessage("{ServerCallback()}" + ex.Message);
                 return;
             }
@@ -164,9 +191,9 @@ namespace Server
                 {
                     SendComputerList(context.Response);
                 }
-                catch
+                catch (Exception ex)
                 {
-
+                    ReportError(ex.Message);
                 }
                 return;
             }
@@ -230,9 +257,9 @@ namespace Server
 
                     SendComputerData(context.Response, computerName);
                 }
-                catch
+                catch (Exception ex)
                 {
-
+                    ReportError(ex.Message);
                 }
                 return;
             }
@@ -266,9 +293,9 @@ namespace Server
                             this.change = true;
                         }
                     }
-                    catch
+                    catch (Exception ex)
                     {
-
+                        ReportError(ex.Message);
                     }
                 }
             }
@@ -306,17 +333,18 @@ namespace Server
             }
             catch (Exception ex)
             {
+                ReportError(ex.Message);
                 OutputMessage("{SendComputerData()}" + ex.Message);
                 json = "";
             }
 
             try
             {
-                File.WriteAllText(computerName + ".json", json);
+                //File.WriteAllText(computerName + ".json", json);
             }
-            catch
+            catch (Exception ex)
             {
-
+                ReportError(ex.Message);
             }
             SendJson(response, json);
         }
@@ -349,6 +377,7 @@ namespace Server
                     }
                     catch (Exception ex)
                     {
+                        ReportError(ex.Message);
                         OutputMessage("{SendRequestedFile()}" + ex.Message);
                     }
                     return;
@@ -376,6 +405,7 @@ namespace Server
             }
             catch (Exception ex)
             {
+                ReportError(ex.Message);
                 OutputMessage("{SendJson()}" + ex.Message);
             }
 
@@ -407,7 +437,13 @@ namespace Server
             {
                 Console.WriteLine(message);
             }
-            this.logger.Log(message);
         }
+
+        private static void ReportError(string Message)
+        {
+            StackFrame CallStack = new StackFrame(1, true);
+            Console.WriteLine("Error: " + Message + ", File: " + CallStack.GetFileName() + ", Line: " + CallStack.GetFileLineNumber());
+        }
+
     }
 }
