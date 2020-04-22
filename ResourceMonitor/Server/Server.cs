@@ -27,6 +27,7 @@ namespace Server
         private int counter;
         private bool change;
         private SnmpManager snmpManager;
+        private bool isRunning;
 
         public Server(int port, MainForm serverParent = null)
         {
@@ -70,6 +71,8 @@ namespace Server
 
         public Boolean Start()
         {
+            this.isRunning = true;
+
             if (PlatformNotSupported())
             {
                 return false;
@@ -104,7 +107,10 @@ namespace Server
 
         public Boolean Stop()
         {
+            this.isRunning = false;
+
             StopDiscovery();
+
             if (PlatformNotSupported())
             {
                 return false;
@@ -445,5 +451,24 @@ namespace Server
             Console.WriteLine("Error: " + Message + ", File: " + CallStack.GetFileName() + ", Line: " + CallStack.GetFileLineNumber());
         }
 
+        public Boolean DiscoveryDone
+        {
+            get { return this.snmpManager.DiscoveryDone; }
+        }
+
+        public string NetworkProgress
+        {
+            get { return snmpManager.NetworkProgress; }
+        }
+
+        public string IpProgress
+        {
+            get { return snmpManager.IpProgress; }
+        }
+
+        public Boolean IsRunning
+        {
+            get { return this.isRunning; }
+        }
     }
 }

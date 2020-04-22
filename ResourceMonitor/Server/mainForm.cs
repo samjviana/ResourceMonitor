@@ -7,6 +7,7 @@ using System.Drawing;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using Newtonsoft.Json;
@@ -25,6 +26,10 @@ namespace Server
             server = new Server(Convert.ToInt32(this.portField.Value), this);
             server.Start();
             server.StartDiscovery();
+
+            Thread progressThread = new Thread(new ThreadStart(ProgressUpdate));
+            progressThread.Start();
+
             startButton.Enabled = false;
 
             string configFileName = Path.ChangeExtension(Application.ExecutablePath, ".config");
@@ -202,6 +207,29 @@ namespace Server
                 {
 
                 }
+            }
+        }
+
+        private void ProgressUpdate()
+        {
+            while (!server.DiscoveryDone && server.IsRunning)
+            {
+                try
+                {
+                    this.textBox1.Invoke((Action)delegate
+                    {
+                        this.textBox1.Text = server.NetworkProgress;
+                    });
+                    this.textBox2.Invoke((Action)delegate
+                    {
+                        this.textBox2.Text = server.IpProgress;
+                    });
+                }
+                catch (Exception ex)
+                {
+                    ReportError(ex.Message);
+                }
+                Thread.Sleep(1000);
             }
         }
     }

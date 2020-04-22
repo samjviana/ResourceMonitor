@@ -7,6 +7,7 @@ using System.Net;
 using System.Net.NetworkInformation;
 using System.Text;
 using System.Threading;
+using System.Windows.Forms;
 
 namespace Server
 {
@@ -125,11 +126,16 @@ namespace Server
             }
         }
 
+        private int currentNetworkId;
+        private int currentIp;
+        private int threadCount;
         private void NetworkDiscovery()
         {
             discoveryData = new Dictionary<int, object>();
             foreach (var networkInterface in networkInterfaces)
             {
+                this.currentNetworkId = networkInterface.Key;
+
                 byte[] startIp = networks[networkInterface.Key].GetAddressBytes();
                 int[] octets = new int[4];
 
@@ -142,6 +148,8 @@ namespace Server
                 Thread[] pingThreads = new Thread[usableIps[networkInterface.Key]];
                 threadsObj = pingThreads;
 
+                this.currentIp = 0;
+                this.threadCount = 0;
                 for (int i = 0; i < usableIps[networkInterface.Key]; i++)
                 {
                     string ipToPing = octets[0] + "." + octets[1] + "." + octets[2] + "." + octets[3];
@@ -149,6 +157,7 @@ namespace Server
                     pingThreads[i] = new Thread(new ThreadStart(PingAsync));
                     pingThreads[i].Name = ipToPing;
                     pingThreads[i].Start();
+                    this.threadCount++;
 
                     octets[3]++;
                     if (octets[3] > 255)
@@ -166,6 +175,11 @@ namespace Server
                             }
                         }
                     }
+
+                    if(this.threadCount >= 256)
+                    {
+                        pingThreads[i].Join();
+                    }
                 }
 
                 foreach (var thread in pingThreads)
@@ -173,6 +187,7 @@ namespace Server
                     thread.Join();
                 }
 
+                Console.WriteLine("Teste");
                 discoveryData.Add(networkInterface.Key, pingData);
             }
 
@@ -262,6 +277,8 @@ namespace Server
                 pingData[sourceIP] = "ERROR";
             }
 
+            this.currentIp++;
+            this.threadCount--;
             /*textBox5.Invoke((Action)delegate
             {
                 textBox5.AppendText(string.Format("{0} - {1}{2}", sourceIP.PadRight(14, ' '), pingData[sourceIP], Environment.NewLine));
@@ -438,6 +455,16 @@ namespace Server
                 Console.WriteLine(string.Format("    • Broadcast: {0}", broadcasts[networkInterface.Key]));
                 Console.WriteLine(string.Format("    • Usable Ips: {0}", usableIps[networkInterface.Key]));
             }
+        }
+
+        public string NetworkProgress
+        {
+            get { return string.Format("{0} / {1}", this.currentNetworkId + 1, this.networkInterfaces.Count); }
+        }
+
+        public string IpProgress
+        {
+            get { return string.Format("{0} / {1}", this.currentIp + 1, this.usableIps[this.currentNetworkId]); }
         }
     }
 }
