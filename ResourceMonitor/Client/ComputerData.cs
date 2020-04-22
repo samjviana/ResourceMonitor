@@ -64,7 +64,10 @@ namespace Client
                         if (hardware.Sensors.Length > 0)
                         {
                             hardwareDict.Add("Sensors", ParseSensors(hardware.Sensors, (HardwareType)hardwareType));
-                            hardwareDict.Add("Core Number", this.cpuCoreNumber);
+                            if(hardware.HardwareType == HardwareType.CPU)
+                            {
+                                hardwareDict.Add("Cores", this.cpuCoreNumber);
+                            }
                             this.cpuCoreNumber = 0;
                         }
                         else
@@ -112,98 +115,100 @@ namespace Client
                     {
                         if (hardwareType == HardwareType.CPU && sensor.SensorType == SensorType.Clock)
                         {
-                            if (valuesDict.ContainsKey("MaxClockSpeed"))
+                            if (valuesDict.ContainsKey("Maximum"))
                             {
-                                valuesDict["MaxClockSpeed"] = ReadCPUMaxClockSpeed();
+                                valuesDict["Maximum"] = ReadCPUMaxClockSpeed();
                             }
                             else
                             {
-                                valuesDict.Add("MaxClockSpeed", ReadCPUMaxClockSpeed());
+                                valuesDict.Add("Maximum", ReadCPUMaxClockSpeed());
                             }
                             if (sensor.Name.Contains("CPU Core"))
                             {
                                 averageClock += sensor.Value.GetValueOrDefault();
                                 cores++;
-                                if (valuesDict.ContainsKey("Average Clock"))
+                                if (valuesDict.ContainsKey("Average"))
                                 {
-                                    valuesDict["Average Clock"] = averageClock / cores;
+                                    valuesDict["Average"] = averageClock / cores;
                                 }
                                 else
                                 {
-                                    valuesDict.Add("Average Clock", averageClock / cores);
+                                    valuesDict.Add("Average", averageClock / cores);
                                 }
                             }
                         }
                         else if(hardwareType == HardwareType.CPU && sensor.SensorType == SensorType.Power)
                         {
-                            if(valuesDict.ContainsKey("MaxTDP"))
+                            if(valuesDict.ContainsKey("Maximum"))
                             {
-                                valuesDict["MaxTDP"] = ReadCPUMaxTDP();
+                                valuesDict["Maximum"] = ReadCPUMaxTDP();
                             }
                             else
                             {
-                                valuesDict.Add("MaxTDP", ReadCPUMaxTDP());
+                                valuesDict.Add("Maximum", ReadCPUMaxTDP());
                             }
                         }
                         else if(hardwareType == HardwareType.CPU && sensor.SensorType == SensorType.Temperature)
                         {
-                            if(valuesDict.ContainsKey("MaxTemperature"))
+                            if(valuesDict.ContainsKey("Maximum"))
                             {
-                                valuesDict["MaxTemperature"] = ReadCPUMaxTemperature();
+                                valuesDict["Maximum"] = ReadCPUMaxTemperature();
                             }
                             else
                             {
-                                valuesDict.Add("MaxTemperature", ReadCPUMaxTemperature());
+                                valuesDict.Add("Maximum", ReadCPUMaxTemperature());
                             }
                             if (sensor.Name.Contains("CPU Core"))
                             {
                                 averageTemperature += sensor.Value.GetValueOrDefault();
                                 cores++;
-                                if (valuesDict.ContainsKey("Average Temperature"))
+                                if (valuesDict.ContainsKey("Average"))
                                 {
-                                    valuesDict["Average Temperature"] = averageTemperature / cores;
+                                    valuesDict["Average"] = averageTemperature / cores;
                                 }
                                 else
                                 {
-                                    valuesDict.Add("Average Temperature", averageTemperature / cores);
+                                    valuesDict.Add("Average", averageTemperature / cores);
                                 }
                             }
-
                         }
-
-                        if (hardwareType == HardwareType.GpuNvidia && sensor.SensorType == SensorType.Temperature)
+                        else if (hardwareType == HardwareType.GpuNvidia && sensor.SensorType == SensorType.Temperature)
                         {
-                            if (valuesDict.ContainsKey("MaxTemperature"))
+                            if (valuesDict.ContainsKey("Maximum"))
                             {
-                                valuesDict["MaxTemperature"] = ReadGPUMaxTemperature();
+                                valuesDict["Maximum"] = ReadGPUMaxTemperature();
                             }
                             else
                             {
-                                valuesDict.Add("MaxTemperature", ReadGPUMaxTemperature());
+                                valuesDict.Add("Maximum", ReadGPUMaxTemperature());
                             }
                         }
                         else if (hardwareType == HardwareType.GpuNvidia && sensor.SensorType == SensorType.Clock)
                         {
-                            if (valuesDict.ContainsKey("MaxCoreClock"))
+                            if(sensor.Name.Contains("GPU Core"))
                             {
-                                valuesDict["MaxCoreClock"] = ReadGPUMaxCoreClock();
+                                if (valuesDict.ContainsKey("Maximum"))
+                                {
+                                    valuesDict["Maximum"] = ReadGPUMaxCoreClock();
+                                }
+                                else
+                                {
+                                    valuesDict.Add("Maximum", ReadGPUMaxCoreClock());
+                                }
                             }
-                            else
+                            else if(sensor.Name.Contains("GPU Memory"))
                             {
-                                valuesDict.Add("MaxCoreClock", ReadGPUMaxCoreClock());
-                            }
-
-                            if (valuesDict.ContainsKey("MaxMemoryClock"))
-                            {
-                                valuesDict["MaxMemoryClock"] = ReadGPUMaxMemoryClock();
-                            }
-                            else
-                            {
-                                valuesDict.Add("MaxMemoryClock", ReadGPUMaxMemoryClock());
+                                if (valuesDict.ContainsKey("Maximum"))
+                                {
+                                    valuesDict["Maximum"] = ReadGPUMaxMemoryClock();
+                                }
+                                else
+                                {
+                                    valuesDict.Add("Maximum", ReadGPUMaxMemoryClock());
+                                }
                             }
                         }
-
-                        if(hardwareType == HardwareType.RAM && sensor.SensorType == SensorType.Data)
+                        else if(hardwareType == HardwareType.RAM && sensor.SensorType == SensorType.Data)
                         {
                             if(valuesDict.ContainsKey("Total Memory"))
                             {
@@ -275,22 +280,29 @@ namespace Client
 
         public string GetJsonData()
         {
-            return JsonConvert.SerializeObject(this.computer);
+            string jsonData = JsonConvert.SerializeObject(this.computer);
+            try
+            {
+                File.WriteAllText(Environment.MachineName + ".json", jsonData);
+            }
+            catch
+            { 
+            }
+            return jsonData;
         }
 
-        private string ReadCPUMaxClockSpeed()
+        private double ReadCPUMaxClockSpeed()
         {
             uint eax, edx;
             uint MSR_TURBO_RATIO_LIMIT = 0x1AD;
-            uint MSR_PLATFORM_INFO = 0xCE;
 
             Ring0.Rdmsr(MSR_TURBO_RATIO_LIMIT, out eax, out edx);
             float maxClockSpeed = (((eax >> 0) & 0xFF) * 100);
 
-            return maxClockSpeed.ToString();
+            return maxClockSpeed;
         }
 
-        private string ReadCPUMaxTDP()
+        private double ReadCPUMaxTDP()
         {
             uint eax, edx;
             uint MSR_RAPL_POWER_UNIT = 0x606;
@@ -303,10 +315,10 @@ namespace Client
             float maxTdp = eax & 0x7FFF;
             maxTdp *= powerUnit;
 
-            return maxTdp.ToString();
+            return maxTdp;
         }
 
-        private string ReadCPUMaxTemperature()
+        private double ReadCPUMaxTemperature()
         {
             uint eax, edx;
             uint IA32_TEMPERATURE_TARGET = 0x1A2;
@@ -314,10 +326,10 @@ namespace Client
             Ring0.Rdmsr(IA32_TEMPERATURE_TARGET, out eax, out edx);
             float maxTemperature = (eax >> 16) & 0xFF;
 
-            return maxTemperature.ToString();
+            return maxTemperature;
         }
 
-        private string ReadGPUMaxTemperature()
+        private double ReadGPUMaxTemperature()
         {
             float maxTemperature = 0;
             try
@@ -336,10 +348,10 @@ namespace Client
                 maxTemperature = -1;
             }
 
-            return maxTemperature.ToString();
+            return maxTemperature;
         }
 
-        private string ReadGPUMaxCoreClock()
+        private double ReadGPUMaxCoreClock()
         {
             float maxCoreClock = 0;
             try
@@ -353,10 +365,10 @@ namespace Client
                 maxCoreClock = -1;
             }
 
-            return maxCoreClock.ToString();
+            return maxCoreClock;
         }
 
-        private string ReadGPUMaxMemoryClock()
+        private double ReadGPUMaxMemoryClock()
         {
             float maxMemoryClock = 0;
             try
@@ -370,10 +382,10 @@ namespace Client
                 maxMemoryClock = -1;
             }
 
-            return maxMemoryClock.ToString();
+            return maxMemoryClock;
         }
 
-        private string GetSystemTotalRAM()
+        private double GetSystemTotalRAM()
         {
             string wmiNamespace = @"\\.\root\cimv2";
             string wmiClass = "Win32_PhysicalMemory";
@@ -386,10 +398,10 @@ namespace Client
             }
             totalRam /= (1 << 30);
 
-            return totalRam.ToString();
+            return totalRam;
         }
 
-        private string GetMaxCPUClockWMI()
+        private double GetMaxCPUClockWMI()
         {
             string wmiNamespace = @"\\.\root\cimv2";
             string wmiClass = "Win32_Processor";
@@ -401,7 +413,7 @@ namespace Client
                 maxClockSpeed = Convert.ToDouble(result);
             }
 
-            return maxClockSpeed.ToString();
+            return maxClockSpeed;
         }
     }
 }

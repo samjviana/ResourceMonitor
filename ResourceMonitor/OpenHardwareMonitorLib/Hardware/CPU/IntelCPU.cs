@@ -84,8 +84,7 @@ namespace OpenHardwareMonitor.Hardware.CPU
             float[] result = new float[coreCount];
             for (int i = 0; i < coreCount; i++)
             {
-                if (Ring0.RdmsrTx(IA32_TEMPERATURE_TARGET, out eax,
-                  out edx, 1UL << cpuid[i][0].Thread))
+                if (Ring0.RdmsrTx(IA32_TEMPERATURE_TARGET, out eax, out edx, 1UL << cpuid[i][0].Thread))
                 {
                     result[i] = (eax >> 16) & 0xFF;
                 }
@@ -93,7 +92,7 @@ namespace OpenHardwareMonitor.Hardware.CPU
                 {
                     result[i] = 100;
                 }
-            }
+}
             return result;
         }
 
