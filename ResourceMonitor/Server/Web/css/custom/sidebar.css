@@ -12,25 +12,67 @@ a:focus {
 
 #sidebar {
     left: 0;
-    min-width: 250px;
-    max-width: 250px;
+    min-width: 275px;
+    max-width: 275px;
     background: #7386d5;
     color: #fff;
     transition: all 0.3s;
+    z-index: 1010;
 }
 
 #sidebar.active {
-    margin-left: -250px;
+    margin-left: -275px;
+}
+
+#sidebar.active .sidebar-header {
+    /*box-shadow: 11px 0px 20px -10px black;*/
+    white-space: nowrap;
+    overflow: hidden;
+    border-radius: 0px 25px 25px 0px;
+    width: 325px;
+    transition: all 0.3s;
+    cursor: pointer;
 }
 
 #sidebar .sidebar-header {
-    padding-top: 45px;
-    padding-bottom: 20px;
+    /*padding-top: 20px;*/
+    /*padding-bottom: 20px;*/
+    margin-top: 64px;
     background: #6d7fcc;
+    transition: all 0.3s;
+    /*transform: translate(0px, 42px);*/
+    width: 325px;
+    border-radius: 0px 25px 25px 0px;
+}
+
+#sidebar.active .sidebar-header:hover {
+    background-image: linear-gradient(to right, #6d7fcc 10%, #738dd5 40%);
+}
+
+#sidebar .sidebar-header .title {
+    padding-top: 20px;
+    padding-bottom: 20px;
+    width: 275px;
+    /*transform: translate(45px, 13px);*/
+}
+
+#sidebar .sidebar-header .icon {
+    cursor: pointer;
+    width: 50px;
+    padding-top: calc(9%);
+    /*transform: translate(78px, 20px);*/
+}
+
+#sidebar .sidebar-header .icon.not_mobile:hover {
+    border-radius: 0px 25px 25px 0px;
+    /*background-image: linear-gradient(to right, #6d7fcc 1%, #738dd5 99%);*/linear-gradient(red, yellow 10%, green 20%);
+    background-image: linear-gradient(to right, #6d7fcc 10%, #738dd5 40%);
+    /*background-color: #738dd5;*/
+    /*transform: translate(78px, 20px);*/
 }
 
 #sidebar ul.components {
-    padding: 20px 0;
+    padding: 50px 0;
     border-bottom: 1px solid #47748b;
 }
 
@@ -125,7 +167,7 @@ a.article:hover {
 }
 
 #content.moved {
-    transform: translateX(250px);
+    transform: translateX(290px);
 }
 
 /* ---------------------------------------------------
@@ -137,9 +179,14 @@ a.article:hover {
         margin-left: 0;
     }
     #sidebar.active {
-        margin-left: -250px;
+        margin-left: -275px;
     }
     #sidebarCollapse span {
         display: none;
     }
+}
+
+@media (min-width: 600px) {
+    #sidebar .sidebar-header {
+        transform: translate(0px, 8px);    }
 }

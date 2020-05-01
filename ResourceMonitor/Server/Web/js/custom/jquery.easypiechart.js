@@ -186,6 +186,11 @@ var CanvasRenderer = function(el, options) {
 			color = options.barColor;
 		}
 
+		var track;
+		track = options.trackColor;
+		// draw track
+		drawCircle(track, options.trackWidth || options.lineWidth, 1);
+
 		// draw bar
 		drawCircle(color, options.lineWidth, percent / 100);
 	}.bind(this);
@@ -324,6 +329,7 @@ var EasyPieChart = function(el, opts) {
 		} else {
 			this.renderer.draw(newValue);
 		}
+		this.renderer.drawBackground();
 		currentValue = newValue;
 		return this;
 	}.bind(this);

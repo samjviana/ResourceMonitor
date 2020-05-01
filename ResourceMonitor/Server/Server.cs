@@ -272,7 +272,7 @@ namespace Server
 
             if (string.IsNullOrEmpty(requestedFile))
             {
-                requestedFile = "index.html";
+                requestedFile = "index1.html";
             }
 
             string[] splits = requestedFile.Split('.');

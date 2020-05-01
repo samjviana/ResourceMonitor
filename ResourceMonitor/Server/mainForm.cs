@@ -22,10 +22,13 @@ namespace Server
         public MainForm()
         {
             InitializeComponent();
+        }
 
+        private void MainForm_Load(object sender, EventArgs e)
+        {
             server = new Server(Convert.ToInt32(this.portField.Value), this);
             server.Start();
-            server.StartDiscovery();
+            //server.StartDiscovery();
 
             Thread progressThread = new Thread(new ThreadStart(ProgressUpdate));
             progressThread.Start();
@@ -38,8 +41,8 @@ namespace Server
             if (File.Exists(configFileName))
             {
                 string configData = File.ReadAllText(configFileName);
-            
-                if(!ParseSettings(settingsManager.Load(configData)))
+
+                if (!ParseSettings(settingsManager.Load(configData)))
                 {
                     this.serverOutput.AppendText("Erro ao carregar configurações" + Environment.NewLine);
                 }

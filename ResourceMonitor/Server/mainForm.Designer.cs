@@ -34,6 +34,10 @@
             this.stopButton = new System.Windows.Forms.Button();
             this.runningLabel = new System.Windows.Forms.Label();
             this.optionsGroupBox = new System.Windows.Forms.GroupBox();
+            this.textBox2 = new System.Windows.Forms.TextBox();
+            this.label3 = new System.Windows.Forms.Label();
+            this.textBox1 = new System.Windows.Forms.TextBox();
+            this.label2 = new System.Windows.Forms.Label();
             this.portField = new System.Windows.Forms.NumericUpDown();
             this.button1 = new System.Windows.Forms.Button();
             this.ipHostnameLabel = new System.Windows.Forms.Label();
@@ -47,10 +51,6 @@
             this.exitMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.serverOutput = new System.Windows.Forms.TextBox();
             this.label1 = new System.Windows.Forms.Label();
-            this.label2 = new System.Windows.Forms.Label();
-            this.textBox1 = new System.Windows.Forms.TextBox();
-            this.label3 = new System.Windows.Forms.Label();
-            this.textBox2 = new System.Windows.Forms.TextBox();
             this.optionsGroupBox.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.portField)).BeginInit();
             this.trayMenu.SuspendLayout();
@@ -104,6 +104,38 @@
             this.optionsGroupBox.TabIndex = 3;
             this.optionsGroupBox.TabStop = false;
             this.optionsGroupBox.Text = "Opções";
+            // 
+            // textBox2
+            // 
+            this.textBox2.Location = new System.Drawing.Point(32, 191);
+            this.textBox2.Name = "textBox2";
+            this.textBox2.Size = new System.Drawing.Size(130, 20);
+            this.textBox2.TabIndex = 9;
+            // 
+            // label3
+            // 
+            this.label3.AutoSize = true;
+            this.label3.Location = new System.Drawing.Point(9, 194);
+            this.label3.Name = "label3";
+            this.label3.Size = new System.Drawing.Size(17, 13);
+            this.label3.TabIndex = 8;
+            this.label3.Text = "IP";
+            // 
+            // textBox1
+            // 
+            this.textBox1.Location = new System.Drawing.Point(48, 165);
+            this.textBox1.Name = "textBox1";
+            this.textBox1.Size = new System.Drawing.Size(114, 20);
+            this.textBox1.TabIndex = 7;
+            // 
+            // label2
+            // 
+            this.label2.AutoSize = true;
+            this.label2.Location = new System.Drawing.Point(9, 168);
+            this.label2.Name = "label2";
+            this.label2.Size = new System.Drawing.Size(33, 13);
+            this.label2.TabIndex = 6;
+            this.label2.Text = "Rede";
             // 
             // portField
             // 
@@ -235,38 +267,6 @@
             this.label1.TabIndex = 5;
             this.label1.Text = "label1";
             // 
-            // label2
-            // 
-            this.label2.AutoSize = true;
-            this.label2.Location = new System.Drawing.Point(9, 191);
-            this.label2.Name = "label2";
-            this.label2.Size = new System.Drawing.Size(33, 13);
-            this.label2.TabIndex = 6;
-            this.label2.Text = "Rede";
-            // 
-            // textBox1
-            // 
-            this.textBox1.Location = new System.Drawing.Point(48, 188);
-            this.textBox1.Name = "textBox1";
-            this.textBox1.Size = new System.Drawing.Size(114, 20);
-            this.textBox1.TabIndex = 7;
-            // 
-            // label3
-            // 
-            this.label3.AutoSize = true;
-            this.label3.Location = new System.Drawing.Point(9, 217);
-            this.label3.Name = "label3";
-            this.label3.Size = new System.Drawing.Size(17, 13);
-            this.label3.TabIndex = 8;
-            this.label3.Text = "IP";
-            // 
-            // textBox2
-            // 
-            this.textBox2.Location = new System.Drawing.Point(32, 214);
-            this.textBox2.Name = "textBox2";
-            this.textBox2.Size = new System.Drawing.Size(130, 20);
-            this.textBox2.TabIndex = 9;
-            // 
             // MainForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -284,6 +284,7 @@
             this.Text = "Resource Monitor";
             this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.MainForm_FormClosing);
             this.FormClosed += new System.Windows.Forms.FormClosedEventHandler(this.MainForm_FormClosed);
+            this.Load += new System.EventHandler(this.MainForm_Load);
             this.Resize += new System.EventHandler(this.mainForm_Resize);
             this.optionsGroupBox.ResumeLayout(false);
             this.optionsGroupBox.PerformLayout();

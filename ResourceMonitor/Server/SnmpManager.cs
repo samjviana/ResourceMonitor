@@ -14,6 +14,7 @@ namespace Server
     class SnmpManager
     {
         private Dictionary<int, NetworkInterface> networkInterfaces;
+        private Dictionary<int, NetworkInterface> interfacesToDiscover;
         private Dictionary<int, object> discoveryData;
         private Dictionary<int, IPAddress> masks;
         private Dictionary<int, IPAddress> ips;
@@ -27,6 +28,8 @@ namespace Server
         public SnmpManager()
         {
             this.discoveryDone = false;
+            this.interfacesToDiscover = new Dictionary<int, NetworkInterface>();
+
             GetNetworkInterfaces();
             GetIpAndMask();
             GetNetAndBroadcast();

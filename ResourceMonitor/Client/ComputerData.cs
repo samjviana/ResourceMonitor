@@ -174,37 +174,44 @@ namespace Client
                         }
                         else if (hardwareType == HardwareType.GpuNvidia && sensor.SensorType == SensorType.Temperature)
                         {
+                            double maxTemperature = ReadGPUMaxTemperature();
                             if (valuesDict.ContainsKey("Maximum"))
                             {
-                                valuesDict["Maximum"] = ReadGPUMaxTemperature();
+                                if (maxTemperature != 0)
+                                {
+                                    valuesDict["Maximum"] = ReadGPUMaxTemperature();
+                                }
                             }
                             else
                             {
-                                valuesDict.Add("Maximum", ReadGPUMaxTemperature());
+                                if(maxTemperature != 0)
+                                {
+                                    valuesDict.Add("Maximum", ReadGPUMaxTemperature());
+                                }
                             }
                         }
                         else if (hardwareType == HardwareType.GpuNvidia && sensor.SensorType == SensorType.Clock)
                         {
                             if(sensor.Name.Contains("GPU Core"))
                             {
-                                if (valuesDict.ContainsKey("Maximum"))
+                                if (sensorDict.ContainsKey("Maximum"))
                                 {
-                                    valuesDict["Maximum"] = ReadGPUMaxCoreClock();
+                                    sensorDict["Maximum"] = ReadGPUMaxCoreClock();
                                 }
                                 else
                                 {
-                                    valuesDict.Add("Maximum", ReadGPUMaxCoreClock());
+                                    sensorDict.Add("Maximum", ReadGPUMaxCoreClock());
                                 }
                             }
                             else if(sensor.Name.Contains("GPU Memory"))
                             {
-                                if (valuesDict.ContainsKey("Maximum"))
+                                if (sensorDict.ContainsKey("Maximum"))
                                 {
-                                    valuesDict["Maximum"] = ReadGPUMaxMemoryClock();
+                                    sensorDict["Maximum"] = ReadGPUMaxMemoryClock();
                                 }
                                 else
                                 {
-                                    valuesDict.Add("Maximum", ReadGPUMaxMemoryClock());
+                                    sensorDict.Add("Maximum", ReadGPUMaxMemoryClock());
                                 }
                             }
                         }
@@ -230,10 +237,6 @@ namespace Client
                 if(hardwareType == HardwareType.CPU && cores > 0)
                 {
                     this.cpuCoreNumber = cores;
-                    if(msrRdError)
-                    {
-                        valuesDict["MaxClockSpeed"] = GetMaxCPUClockWMI();
-                    }
                 }
                 sensorsDict.Add(sensorType.ToString(), valuesDict);
             }
@@ -295,11 +298,23 @@ namespace Client
         {
             uint eax, edx;
             uint MSR_TURBO_RATIO_LIMIT = 0x1AD;
+            uint MSR_PLATFORM_INFO = 0xCE;
 
-            Ring0.Rdmsr(MSR_TURBO_RATIO_LIMIT, out eax, out edx);
-            float maxClockSpeed = (((eax >> 0) & 0xFF) * 100);
+            Ring0.Rdmsr(MSR_PLATFORM_INFO, out eax, out edx);
+            double baseClock = (eax >> 8) & 0xFF;
 
-            return maxClockSpeed;
+            double maxClock = 0;
+            if(baseClock == 0)
+            {
+                maxClock = GetMaxCPUClockWMI();
+            }
+            else
+            {
+                Ring0.Rdmsr(MSR_TURBO_RATIO_LIMIT, out eax, out edx);
+                maxClock = (((eax >> 0) & 0xFF) * 100);
+            }
+
+            return maxClock;
         }
 
         private double ReadCPUMaxTDP()
@@ -321,9 +336,9 @@ namespace Client
         private double ReadCPUMaxTemperature()
         {
             uint eax, edx;
-            uint IA32_TEMPERATURE_TARGET = 0x1A2;
+            uint MSR_TEMPERATURE_TARGET = 0x1A2;
 
-            Ring0.Rdmsr(IA32_TEMPERATURE_TARGET, out eax, out edx);
+            Ring0.Rdmsr(MSR_TEMPERATURE_TARGET, out eax, out edx);
             float maxTemperature = (eax >> 16) & 0xFF;
 
             return maxTemperature;
@@ -353,12 +368,12 @@ namespace Client
 
         private double ReadGPUMaxCoreClock()
         {
-            float maxCoreClock = 0;
+            double maxCoreClock = 0;
             try
             {
                 PhysicalGPU gpu = this.nvidiaGpus[0];
 
-                maxCoreClock = gpu.BoostClockFrequencies.GraphicsClock.Frequency;
+                maxCoreClock = gpu.BoostClockFrequencies.GraphicsClock.Frequency / 1000.0;
             }
             catch
             {
@@ -370,12 +385,12 @@ namespace Client
 
         private double ReadGPUMaxMemoryClock()
         {
-            float maxMemoryClock = 0;
+            double maxMemoryClock = 0;
             try
             {
                 PhysicalGPU gpu = this.nvidiaGpus[0];
 
-                maxMemoryClock = gpu.BoostClockFrequencies.MemoryClock.Frequency;
+                maxMemoryClock = gpu.BoostClockFrequencies.MemoryClock.Frequency / 1000.0;
             }
             catch
             {

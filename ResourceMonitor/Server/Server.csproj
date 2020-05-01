@@ -60,7 +60,6 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Logger.cs" />
     <Compile Include="MainForm.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -167,7 +166,9 @@
   <ItemGroup>
     <None Include="App.config" />
   </ItemGroup>
-  <ItemGroup />
+  <ItemGroup>
+    <EmbeddedResource Include="Web\index1.html" />
+  </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Web\css\addons\datatables-select.min.css" />
   </ItemGroup>
@@ -256,9 +257,6 @@
     <EmbeddedResource Include="Web\img\svg\arrow_right.svg" />
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="Web\index.html" />
-  </ItemGroup>
-  <ItemGroup>
     <EmbeddedResource Include="Web\js\addons\datatables-select.min.js" />
   </ItemGroup>
   <ItemGroup>
@@ -295,7 +293,7 @@
     <EmbeddedResource Include="Web\js\custom\jquery.easypiechart.min.js" />
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="Web\js\custom\script.js" />
+    <EmbeddedResource Include="Web\js\custom\script1.js" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Web\js\jquery.js" />
@@ -386,6 +384,12 @@
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Web\src\js\vendor\free\waves.js" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Web\index2.html" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="Web\js\custom\script2.js" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

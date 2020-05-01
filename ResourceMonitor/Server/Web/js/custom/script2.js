@@ -1,11 +1,4 @@
-﻿var currentComputer = undefined;
-var computerList = [];
-var firstTime = true;
-var json_data = undefined;
-
-var extraCpu = JSON.parse('{"Name": "Intel Pentium G620","SubHardware": {},"Sensors": {"Voltage": {},"Clock": {"MaxClockSpeed": "2600","CPU Core #1": {"Value": 2594.10669},"CPU Core #2": {"Value": 2594.10669},"Bus Speed": {"Value": 99.77333},"Average Clock": 2594.106689453125},"Temperature": {"MaxTemperature": "102","CPU Core #1": {"Value": 38.0},"CPU Core #2": {"Value": 41.0},"CPU Package": {"Value": 42.0}},"Load": {"CPU Core #1": {"Value": 0.0},"CPU Core #2": {"Value": 100.0},"CPU Total": {"Value": 50.0}},"Fan": {},"Flow": {},"Control": {},"Level": {},"Factor": {},"Power": {"MaxTDP": "65","CPU Package": {"Value": 17.08072},"CPU Cores": {"Value": 12.9638481},"CPU Graphics": {"Value": 0.1728383}},"Data": {},"SmallData": {},"Throughput": {}},"Core Number": 2}');
-
-function isMobile() {
+﻿function isMobile() {
     try {
         document.createEvent("TouchEvent");
         return true;
@@ -15,9 +8,31 @@ function isMobile() {
 }
 
 $(document).ready(function () {
-    $("#sidebarCollapse").on("click", function () {
-        $("#sidebar").toggleClass("active")
+    $("#sidebar_toggle").on("click", function () {
+        $("#sidebar").toggleClass("active");
         $('#content').toggleClass('moved');
+        if(isMobile()) {
+            $('#sidebar_toggle').removeClass("not_mobile");
+        } else {
+            $('#sidebar_toggle').addClass("not_mobile");
+        }
+        if($('#sidebar_toggle').hasClass("fa-arrow-right")) {
+            $('#sidebar_toggle').removeClass("fa-arrow-right");
+            $('#sidebar_toggle').addClass("fa-arrow-left");
+        } else {
+            $('#sidebar_toggle').removeClass("fa-arrow-left");
+            $('#sidebar_toggle').addClass("fa-arrow-right");
+        }
+    });
+
+    $("#darkTheme").on("click", function () {
+        $('#content').toggleClass('dark');
+        $('.card').toggleClass('dark');
+        $('.dropdown-toggle').toggleClass('dark');
+        $('.progress').toggleClass('dark');
+        $('#sidebar').toggleClass('dark');
+        $('#sidebar .sidebar-header').toggleClass('dark');
+        toggleChartDark();
     });
 
     if (isMobile()) {
@@ -56,8 +71,8 @@ $(document).ready(function () {
 $('.chart').easyPieChart({
     size: 135,
     scaleColor: false,
-    trackColor: "#E1E1E1",
-    lineWidth: 12,
+    trackColor: "#d4d4d4",
+    lineWidth: 13,
     onStep: function (from, to, percent) {
         $(this.el).find('.value').text(Math.round(percent) + "%");
     },
@@ -227,9 +242,6 @@ function Loading() {
     $("#preloader .inner").fadeIn();
     $("body").delay(250).css({ "overflow": "hidden" });
     $("#preloader").delay(250).fadeIn(function () {
-        var hdd_content = document.getElementById("hdd_content");
-        hdd_content.innerHTML = "";
-
         setTimeout(LoadData, 750);
 
         setTimeout(Loaded, 2000);
@@ -237,6 +249,7 @@ function Loading() {
 }
 
 function LoadData() {
+    return;
     BuildSideBar();
 
     if (currentComputer == undefined) {
@@ -262,6 +275,7 @@ function LoadData() {
         } else {
             var gpu_chart = window.chart = $('#gpu_load').data('easyPieChart');
             gpu_chart.options.barColor = "#E1E1E1";
+            gpu_chart.options.trackColor = trackColor;
             gpu_chart.update();
 
             $('#gpu_memory_load').progressBar(0);
@@ -285,11 +299,11 @@ function LoadData() {
             var gpu_load = parseFloat(json_data["Hardware"][gpu_type][0]["Sensors"]["Load"]["GPU Core"]["Value"]).toFixed(1);
             var gpu_memory_load = parseFloat(json_data["Hardware"][gpu_type][0]["Sensors"]["Load"]["GPU Memory"]["Value"]).toFixed(1);
             var gpu_temperature = parseFloat(json_data["Hardware"][gpu_type][0]["Sensors"]["Temperature"]["GPU Core"]["Value"]).toFixed(1);
-            var gpu_max_temperature = parseFloat(json_data["Hardware"][gpu_type][0]["Sensors"]["Temperature"]["MaxTemperature"]).toFixed(1);
+            var gpu_max_temperature = parseFloat(json_data["Hardware"][gpu_type][0]["Sensors"]["Temperature"]["Maximum"]).toFixed(1);
             var gpu_core_clock = parseFloat(json_data["Hardware"][gpu_type][0]["Sensors"]["Clock"]["GPU Core"]["Value"]).toFixed(1);
-            var gpu_max_core_clock = (parseFloat(json_data["Hardware"][gpu_type][0]["Sensors"]["Clock"]["MaxCoreClock"]) / 1000.0).toFixed(1);
+            var gpu_max_core_clock = (parseFloat(json_data["Hardware"][gpu_type][0]["Sensors"]["Clock"]["GPU Core"]["Maximum"])).toFixed(1);
             var gpu_memory_clock = parseFloat(json_data["Hardware"][gpu_type][0]["Sensors"]["Clock"]["GPU Memory"]["Value"]).toFixed(1);
-            var gpu_max_memory_clock = (parseFloat(json_data["Hardware"][gpu_type][0]["Sensors"]["Clock"]["MaxMemoryClock"]) / 1000.0).toFixed(1);
+            var gpu_max_memory_clock = (parseFloat(json_data["Hardware"][gpu_type][0]["Sensors"]["Clock"]["GPU Memory"]["Maximum"])).toFixed(1);
 
             document.getElementById("gpu_model").innerHTML = gpu_model;
             document.getElementById("gpu_memory_load_value").innerHTML = gpu_memory_load + " %";
@@ -349,7 +363,7 @@ function LoadData() {
 
                 var hdd_progress = document.createElement("div");
                 hdd_progress.setAttribute("id", "hdd" + i + "_progress");
-                hdd_progress.setAttribute("class", "progress md-progress my-1 z-depth-0 border");
+                hdd_progress.setAttribute("class", "progress md-progress my-1 z-depth-0 border-0");
 
                 var hdd_bar = document.createElement("div");
                 hdd_bar.setAttribute("id", "hdd" + i + "_bar");
@@ -436,15 +450,15 @@ function BuildCpuCard() {
         var cpu_model = json_data["Hardware"]["CPU"][cpu_id]["Name"];
         var cpu_load = parseFloat(json_data["Hardware"]["CPU"][cpu_id]["Sensors"]["Load"]["CPU Total"]["Value"]).toFixed(1);
         if(json_data["Hardware"]["CPU"][cpu_id]["Sensors"]["Temperature"]["CPU Package"] == undefined) {
-            var cpu_temperature = parseFloat(json_data["Hardware"]["CPU"][cpu_id]["Sensors"]["Temperature"]["Average Temperature"]).toFixed(1);
+            var cpu_temperature = parseFloat(json_data["Hardware"]["CPU"][cpu_id]["Sensors"]["Temperature"]["Average"]).toFixed(1);
         } else {
             var cpu_temperature = parseFloat(json_data["Hardware"]["CPU"][cpu_id]["Sensors"]["Temperature"]["CPU Package"]["Value"]).toFixed(1);
         }
-        var cpu_max_temperature = parseFloat(json_data["Hardware"]["CPU"][cpu_id]["Sensors"]["Temperature"]["MaxTemperature"]).toFixed(1);
-        var cpu_clock = parseFloat(json_data["Hardware"]["CPU"][cpu_id]["Sensors"]["Clock"]["Average Clock"]).toFixed(1);
-        var cpu_max_clock = parseFloat(json_data["Hardware"]["CPU"][cpu_id]["Sensors"]["Clock"]["MaxClockSpeed"]).toFixed(1);
+        var cpu_max_temperature = parseFloat(json_data["Hardware"]["CPU"][cpu_id]["Sensors"]["Temperature"]["Maximum"]).toFixed(1);
+        var cpu_clock = parseFloat(json_data["Hardware"]["CPU"][cpu_id]["Sensors"]["Clock"]["Average"]).toFixed(1);
+        var cpu_max_clock = parseFloat(json_data["Hardware"]["CPU"][cpu_id]["Sensors"]["Clock"]["Maximum"]).toFixed(1);
         var cpu_power = parseFloat(json_data["Hardware"]["CPU"][cpu_id]["Sensors"]["Power"]["CPU Package"]["Value"]).toFixed(1);
-        var cpu_max_power = parseFloat(json_data["Hardware"]["CPU"][cpu_id]["Sensors"]["Power"]["MaxTDP"]).toFixed(1);
+        var cpu_max_power = parseFloat(json_data["Hardware"]["CPU"][cpu_id]["Sensors"]["Power"]["Maximum"]).toFixed(1);
     } catch {
 
     }

@@ -22,7 +22,10 @@ namespace Client
         public MainForm()
         {
             InitializeComponent();
+        }
 
+        private void MainForm_Load(object sender, EventArgs e)
+        {
             this.timer.Start();
 
             this.logger = new Logger("log.txt");
@@ -41,7 +44,7 @@ namespace Client
                 if (!ParseSettings(settingsManager.Load(configData)))
                 {
                     this.serverOutput.AppendText("Erro ao carregar configurações" + Environment.NewLine);
-                    this.logger.Log("Erro ao carregar configurações.");    
+                    this.logger.Log("Erro ao carregar configurações.");
                 }
             }
 

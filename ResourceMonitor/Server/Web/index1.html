@@ -65,9 +65,17 @@
 			<div class="collapse navbar-collapse" id="navbarSupportedContent">
 				<ul class="navbar-nav mr-auto">
 					<li class="nav-item active">
-						<a id="sidebarCollapse" class="nav-link" href="#">Computadores
+						<a id="sidebarCollapse_" class="nav-link" href="#">Computadores
 							<span class="sr-only">(current)</span>
 						</a>
+					</li>
+					<li class="nav-item">
+						<a class="nav-link" href="./index2.html">Rede</a>
+					</li>
+				</ul>
+				<ul class="navbar-nav mr-0">
+					<li class="nav-item">
+						<a id="darkTheme" class="nav-link" href="#">Dark</a>
 					</li>
 				</ul>
 			</div>
@@ -75,7 +83,7 @@
 	</header>
 
 	<main>
-		<div class="container swipe-area">
+		<div class="container">
 			<!--
   ____  _     _        ____             
  / ___|(_) __| | ___  | __ )  __ _ _ __ 
@@ -85,21 +93,33 @@
 
 			-->
 			<nav id="sidebar" class="fixed active">
-				<div class="sidebar-header mt-5 text-center">
-					<h3>Computadores</h3>
+				<div id="sidebarCollapse" class="sidebar-header text-center">
+					<div class="container">
+						<div class="row" style="flex-wrap: nowrap;">
+							<h3 class="title my-auto">Computadores</h3>
+							<i id="sidebar_toggle" class="icon fas fa-arrow-right fa-lg mx-auto pr-1"></i>
+						</div>
+					</div>
+					<!--div class="row d-flex">
+						<div>
+							<h3 class="title">Computadores</h3>
+						</div>
+						<a>
+							<i class="icon fas fa-bars fa-lg"></i>
+						</a>
+					</div-->
 				</div>
-
 				<ul id="computer_list" class="list-unstyled components">
 				</ul>
 
-				<ul class="list-unstyled CTAs">
+				<!--ul class="list-unstyled CTAs">
 					<li>
 						<a href="#" class="download">Teste Button 1</a>
 					</li>
 					<li>
 						<a href="#" class="article">Teste Button 2</a>
 					</li>
-				</ul>
+				</ul-->
 			</nav>
 			<!--
    ____            _             _   
@@ -139,7 +159,7 @@
 								<span>Recursos</span>
 							</label>
 						</li>
-						<li title="Sistema Operacional">
+						<li title="Detalhes">
 							<label for="tab2" role="button">
 								<svg viewBox="0 0 512 512">
 									<g>
@@ -162,7 +182,7 @@
 									</g>
 								</svg>
 								<br>
-								<span>Sistema Operacional</span>
+								<span>Detalhes</span>
 							</label>
 						</li>
 					</ul>
@@ -224,7 +244,7 @@
 																		<small id="cpu_temperature_value">0°C</small>
 																	</div>
 																	<div id="cpu_temperature"
-																		class="progress md-progress my-1 z-depth-0 border">
+																		class="progress md-progress my-1 z-depth-0 border-0">
 																		<div id="cpu_temperature_bar"
 																			class="progress-bar z-depth-0"
 																			role="progressbar" aria-valuenow="0"
@@ -239,7 +259,7 @@
 																		<small id="cpu_clock_value">0Hz</small>
 																	</div>
 																	<div id="cpu_clock"
-																		class="progress md-progress my-1 z-depth-0 border">
+																		class="progress md-progress my-1 z-depth-0 border-0">
 																		<div id="cpu_clock_bar"
 																			class="progress-bar z-depth-0"
 																			role="progressbar" aria-valuenow="0"
@@ -254,7 +274,7 @@
 																		<small id="cpu_power_value">0V</small>
 																	</div>
 																	<div id="cpu_power"
-																		class="progress md-progress my-1 z-depth-0 border">
+																		class="progress md-progress my-1 z-depth-0 border-0">
 																		<div id="cpu_power_bar"
 																			class="progress-bar z-depth-0"
 																			role="progressbar" aria-valuenow="0"
@@ -306,7 +326,7 @@
 																		<small id="gpu_memory_load_value">0 %</small>
 																	</div>
 																	<div id="gpu_memory_load"
-																		class="progress md-progress my-1 z-depth-0 border">
+																		class="progress md-progress my-1 z-depth-0 border-0">
 																		<div id="gpu_memory_load_bar"
 																			class="progress-bar z-depth-0"
 																			role="progressbar" aria-valuenow="0"
@@ -321,7 +341,7 @@
 																		<small id="gpu_temperature_value">0°C</small>
 																	</div>
 																	<div id="gpu_temperature"
-																		class="progress md-progress my-1 z-depth-0 border">
+																		class="progress md-progress my-1 z-depth-0 border-0">
 																		<div id="gpu_temperature_bar"
 																			class="progress-bar z-depth-0"
 																			role="progressbar" aria-valuenow="0"
@@ -336,7 +356,7 @@
 																		<small id="gpu_core_clock_value">0Hz</small>
 																	</div>
 																	<div id="gpu_core_clock"
-																		class="progress md-progress my-1 z-depth-0 border">
+																		class="progress md-progress my-1 z-depth-0 border-0">
 																		<div id="gpu_core_clock_bar"
 																			class="progress-bar z-depth-0"
 																			role="progressbar" aria-valuenow="0"
@@ -351,7 +371,7 @@
 																		<small id="gpu_memory_clock_value">0 Hz</small>
 																	</div>
 																	<div id="gpu_memory_clock"
-																		class="progress md-progress my-1 z-depth-0 border">
+																		class="progress md-progress my-1 z-depth-0 border-0">
 																		<div id="gpu_memory_clock_bar"
 																			class="progress-bar z-depth-0"
 																			role="progressbar" aria-valuenow="0"
@@ -397,13 +417,16 @@
 															<div
 																class="col-md-7 d-flex flex-column progress-bar-container">
 																<div class="my-auto text-left py-2">
-																	<a id="total_ram" style="cursor: default">Total RAM: </a>
+																	<a id="total_ram" style="cursor: default">Total RAM:
+																	</a>
 																</div>
 																<div class="my-auto text-left py-2">
-																	<a id="free_ram" style="cursor: default">Free RAM: </a>
+																	<a id="free_ram" style="cursor: default">Free RAM:
+																	</a>
 																</div>
 																<div class="my-auto text-left py-2">
-																	<a id="used_ram" style="cursor: default">Used RAM: </a>
+																	<a id="used_ram" style="cursor: default">Used RAM:
+																	</a>
 																</div>
 															</div>
 														</div>
@@ -459,7 +482,7 @@
 	<!-- Easy Pie Chart Script -->
 	<script type="text/javascript" src="js/custom/jquery.easypiechart.min.js"></script>
 	<!-- Your custom scripts (optional) -->
-	<script type="text/javascript" src="js/custom/script.js"></script>
+	<script type="text/javascript" src="js/custom/script1.js"></script>
 </body>
 
 </html>

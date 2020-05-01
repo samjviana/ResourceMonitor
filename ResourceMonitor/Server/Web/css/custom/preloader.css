@@ -7,7 +7,7 @@
     /*opacity: 0.5;*/
     background-color: #1c2e4a;
     /* cor do background que vai ocupar o body */
-    z-index: 999;
+    z-index: 1020;
     /* z-index para jogar para frente e sobrepor tudo */
 }
 
