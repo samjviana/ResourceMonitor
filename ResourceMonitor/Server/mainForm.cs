@@ -18,6 +18,7 @@ namespace Server
     {
         private Server server;
         private SettingsManager settingsManager;
+        private DiscoveryForm discoveryForm;
 
         public MainForm()
         {
@@ -28,7 +29,6 @@ namespace Server
         {
             server = new Server(Convert.ToInt32(this.portField.Value), this);
             server.Start();
-            //server.StartDiscovery();
 
             Thread progressThread = new Thread(new ThreadStart(ProgressUpdate));
             progressThread.Start();
@@ -195,6 +195,11 @@ namespace Server
 
         private void button1_Click(object sender, EventArgs e)
         {
+            discoveryForm = new DiscoveryForm(server.NetworkInterfaces);
+            discoveryForm.ShowDialog();
+
+            return;
+
             string discoveryData = server.GetDiscoveryData();
             if (discoveryData == null)
             {
@@ -233,6 +238,24 @@ namespace Server
                     ReportError(ex.Message);
                 }
                 Thread.Sleep(1000);
+            }
+        }
+
+        private bool discoveryStarted = false;
+        private void button2_Click(object sender, EventArgs e)
+        {
+            if(!server.DiscoveryDone && server.IsRunning && !discoveryStarted)
+            {
+                discoveryStarted = true;
+                server.StartDiscovery(discoveryForm.InterfacesToDiscover);
+                button2.Text = "Get Discovery";
+            }
+
+            if (server.DiscoveryDone && server.IsRunning && discoveryStarted)
+            {
+                discoveryStarted = false;
+                File.WriteAllText("TRASH.json", server.GetDiscoveryData());
+                button2.Text = "Start Discovery";
             }
         }
     }

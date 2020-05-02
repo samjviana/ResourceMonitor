@@ -6,6 +6,7 @@ using System.Linq;
 using System.Net;
 using System.Net.NetworkInformation;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading;
 using System.Windows.Forms;
 
@@ -15,6 +16,7 @@ namespace Server
     {
         private Dictionary<int, NetworkInterface> networkInterfaces;
         private Dictionary<int, NetworkInterface> interfacesToDiscover;
+        private Dictionary<int, object> interfacesDiscovered;
         private Dictionary<int, object> discoveryData;
         private Dictionary<int, IPAddress> masks;
         private Dictionary<int, IPAddress> ips;
@@ -22,13 +24,18 @@ namespace Server
         private Dictionary<int, IPAddress> broadcasts;
         private Dictionary<int, int> usableIps;
         private Dictionary<string, object> pingData;
+        private List<object> deviceData;
         private object threadsObj;
         private bool discoveryDone;
+        private bool dataChanged;
 
         public SnmpManager()
         {
             this.discoveryDone = false;
+            this.dataChanged = true;
             this.interfacesToDiscover = new Dictionary<int, NetworkInterface>();
+            this.interfacesDiscovered = new Dictionary<int, object>();
+            this.deviceData = new List<object>();
 
             GetNetworkInterfaces();
             GetIpAndMask();
@@ -36,17 +43,24 @@ namespace Server
             ShowData();
         }
 
-        public void StartDiscovery()
+        public void StartDiscovery(Dictionary<int, NetworkInterface> interfacesToDiscover)
         {
+            this.dataChanged = true;
+
+            this.interfacesToDiscover = interfacesToDiscover;
+
             Thread discoveryThread = new Thread(new ThreadStart(NetworkDiscovery));
             discoveryThread.Start();
         }
 
         public void StopDiscovery()
         {
-            foreach (var thread in (Thread[])threadsObj)
+            if(!discoveryDone && threadsObj != null)
             {
-                thread.Join();
+                foreach (var thread in (Thread[])threadsObj)
+                {
+                    thread.Join();
+                }
             }
         }
 
@@ -135,7 +149,8 @@ namespace Server
         private void NetworkDiscovery()
         {
             discoveryData = new Dictionary<int, object>();
-            foreach (var networkInterface in networkInterfaces)
+            int dataCount = 0;
+            foreach (var networkInterface in interfacesToDiscover)
             {
                 this.currentNetworkId = networkInterface.Key;
 
@@ -148,6 +163,7 @@ namespace Server
                 octets[3] = startIp[3] + 1;
 
                 pingData = new Dictionary<string, object>();
+                Console.WriteLine(networkInterface.Key);
                 Thread[] pingThreads = new Thread[usableIps[networkInterface.Key]];
                 threadsObj = pingThreads;
 
@@ -191,11 +207,18 @@ namespace Server
                 }
 
                 Console.WriteLine("Teste");
-                discoveryData.Add(networkInterface.Key, pingData);
+                /*
+                discoveryData.Add(dataCount, pingData);
+                */
+                discoveryData.Add(networkInterface.Key, deviceData);
+                deviceData = new List<object>();
+                dataCount++;
             }
 
             Console.WriteLine("NETWORK DISCOVERY COMPLETED");
             this.discoveryDone = true;
+
+            GetJsonData();
         }
 
         private void PingAsync()
@@ -266,18 +289,33 @@ namespace Server
                     hostname = "";
                 }
 
-                if (SnmpGet(reply.Address.ToString(), "local", false))
+                Dictionary<string, object> deviceDict = new Dictionary<string, object>();
+
+                deviceDict.Add("IP", sourceIP);
+                deviceDict.Add("Hostname", hostname);
+
+                Dictionary<string, object> snmpResult = SnmpGet(reply.Address.ToString(), "local", false);
+
+                if (snmpResult != null)
                 {
+                    deviceDict.Add("SNMP", snmpResult);
+
                     pingData[sourceIP] = string.Format("Hostname: {0} - SNMP: {1}", hostname.PadRight(20, ' '), "OK");
                 }
                 else
                 {
+                    deviceDict.Add("SNMP", new List<object>());
+
                     pingData[sourceIP] = string.Format("Hostname: {0} - SNMP: {1}", hostname.PadRight(20, ' '), "ERROR");
                 }
+                deviceData.Add(deviceDict);
             }
             else
             {
+                /*
                 pingData[sourceIP] = "ERROR";
+                */
+                pingData.Remove(sourceIP);
             }
 
             this.currentIp++;
@@ -288,8 +326,10 @@ namespace Server
             });*/
         }
 
-        private bool SnmpGet(string agent, string community, bool log)
+        private Dictionary<string, object> SnmpGet(string agent, string community, bool log)
         {
+            Dictionary<string, object> snmpResult = new Dictionary<string, object>();
+
             OctetString octetCommunity = new OctetString(community);
 
             // Define agent parameters class
@@ -326,7 +366,7 @@ namespace Server
                     //textBox3.AppendText("Número de tentativas foi excedido!" + Environment.NewLine);
                     //textBox3.AppendText("O agente não respondeu" + Environment.NewLine);
                 }
-                return false;
+                return null;
             }
 
             // If result is null then agent didn't reply or we couldn't parse the reply.
@@ -340,10 +380,16 @@ namespace Server
                     //textBox3.AppendText("Error in SNMP reply." + Environment.NewLine);
                     //textBox3.AppendText(string.Format("Error {0} index {1}{2}", result.Pdu.ErrorStatus, result.Pdu.ErrorIndex, Environment.NewLine));
                     target.Close();
-                    return false;
+                    return null;
                 }
-                else if (log)
+                else
                 {
+                    snmpResult.Add("sysDescr", result.Pdu.VbList[0].Value.ToString());
+                    snmpResult.Add("sysObjectID", result.Pdu.VbList[1].Value.ToString());
+                    snmpResult.Add("sysUpTime", result.Pdu.VbList[2].Value.ToString());
+                    snmpResult.Add("sysContact", result.Pdu.VbList[3].Value.ToString());
+                    snmpResult.Add("sysName", result.Pdu.VbList[4].Value.ToString());
+
                     /*
                     // Reply variables are returned in the same order as they were added
                     //  to the VbList
@@ -384,44 +430,48 @@ namespace Server
             {
                 //textBox3.AppendText(string.Format("{0}{1}", "No response received from SNMP agent.", Environment.NewLine));
                 target.Close();
-                return false;
+                return null;
             }
             target.Close();
 
-            return true;
-        }
 
-        public Boolean DiscoveryDone
-        {
-            get { return this.discoveryDone; }
-            set { }
+            return snmpResult;
         }
-
         public string GetJsonData()
         {
             Dictionary<int, object> jsonData = new Dictionary<int, object>();
 
-            foreach (var networkInterface in networkInterfaces)
+            foreach (var networkInterface in interfacesToDiscover)
             {
-                List<object> data = new List<object>();
+                Dictionary<string, object> interfaceData = new Dictionary<string, object>();
 
-                data.Add(networkInterface.Value.Name);
-                data.Add(networkInterface.Value.GetPhysicalAddress().ToString());
-                foreach (GatewayIPAddressInformation gipi in networkInterface.Value.GetIPProperties().GatewayAddresses)
+                interfaceData.Add("Name", networkInterface.Value.Name);
+
+                string mac = networkInterface.Value.GetPhysicalAddress().ToString();
+                string regex = "(.{2})(.{2})(.{2})(.{2})(.{2})(.{2})";
+                string replace = "$1:$2:$3:$4:$5:$6";
+                mac = Regex.Replace(mac, regex, replace);
+                interfaceData.Add("MAC", mac);
+
+                string gateway = "";
+                foreach (GatewayIPAddressInformation gatewayInfo in networkInterface.Value.GetIPProperties().GatewayAddresses)
                 {
-                    data.Add(gipi.Address.ToString());
+                    gateway = gatewayInfo.Address.ToString();
                     break;
                 }
-                data.Add(ips[networkInterface.Key].ToString());
-                data.Add(masks[networkInterface.Key].ToString());
-                data.Add(networks[networkInterface.Key].ToString());
-                data.Add(broadcasts[networkInterface.Key].ToString());
-                data.Add(discoveryData[networkInterface.Key]);
+                interfaceData.Add("Gateway", gateway);
 
-                jsonData.Add(networkInterface.Key, data);
-                data = new List<object>();
+                interfaceData.Add("IP", ips[networkInterface.Key].ToString());
+                interfaceData.Add("Mask", masks[networkInterface.Key].ToString());
+                interfaceData.Add("Network", networks[networkInterface.Key].ToString());
+                interfaceData.Add("Broadcast", broadcasts[networkInterface.Key].ToString());
+                interfaceData.Add("Devices", discoveryData[networkInterface.Key]);
+
+                jsonData.Add(networkInterface.Key, interfaceData);
+                interfaceData = new Dictionary<string, object>();
             }
 
+            this.interfacesDiscovered = jsonData;
             return JsonConvert.SerializeObject(jsonData);
         }
 
@@ -460,6 +510,24 @@ namespace Server
             }
         }
 
+        public Boolean DiscoveryDone
+        {
+            get { return this.discoveryDone; }
+            set { }
+        }
+
+        public Dictionary<int, NetworkInterface> NetworkInterfaces
+        {
+            get { return this.networkInterfaces; }
+            set { }
+        }
+
+        public Dictionary<int, object> InterfacesDiscovered
+        {
+            get { return this.interfacesDiscovered; }
+            set { }
+        }
+
         public string NetworkProgress
         {
             get { return string.Format("{0} / {1}", this.currentNetworkId + 1, this.networkInterfaces.Count); }
@@ -468,6 +536,12 @@ namespace Server
         public string IpProgress
         {
             get { return string.Format("{0} / {1}", this.currentIp + 1, this.usableIps[this.currentNetworkId]); }
+        }
+
+        public bool DataChanged
+        {
+            get { return this.dataChanged; }
+            set { this.dataChanged = value; }
         }
     }
 }

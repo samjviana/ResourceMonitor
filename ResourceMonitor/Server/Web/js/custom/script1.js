@@ -265,7 +265,7 @@ function Loading() {
 
         setTimeout(LoadData, 750);
 
-        setTimeout(Loaded, 000);
+        setTimeout(Loaded, 2000);
     });
 }
 

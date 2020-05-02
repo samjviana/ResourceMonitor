@@ -60,6 +60,12 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="DiscoveryForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="DiscoveryForm.Designer.cs">
+      <DependentUpon>DiscoveryForm.cs</DependentUpon>
+    </Compile>
     <Compile Include="MainForm.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -72,6 +78,9 @@
     <Compile Include="SettingsManager.cs" />
     <Compile Include="SnmpManager.cs" />
     <Compile Include="StartupManager.cs" />
+    <EmbeddedResource Include="DiscoveryForm.resx">
+      <DependentUpon>DiscoveryForm.cs</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="MainForm.resx">
       <DependentUpon>MainForm.cs</DependentUpon>
     </EmbeddedResource>
@@ -389,7 +398,7 @@
     <EmbeddedResource Include="Web\index2.html" />
   </ItemGroup>
   <ItemGroup>
-    <Content Include="Web\js\custom\script2.js" />
+    <EmbeddedResource Include="Web\js\custom\script2.js" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

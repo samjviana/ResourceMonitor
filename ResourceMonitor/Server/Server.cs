@@ -42,7 +42,7 @@ namespace Server
             this.counter = 0;
             this.change = false;
 
-            if(serverParent != null)
+            if (serverParent != null)
             {
                 this.mainForm = serverParent;
             }
@@ -131,9 +131,9 @@ namespace Server
             return true;
         }
 
-        public void StartDiscovery()
+        public void StartDiscovery(Dictionary<int, NetworkInterface> interfacesToDiscover)
         {
-            this.snmpManager.StartDiscovery();
+            this.snmpManager.StartDiscovery(interfacesToDiscover);
         }
 
         public void StopDiscovery()
@@ -143,7 +143,7 @@ namespace Server
 
         public string GetDiscoveryData()
         {
-            if(snmpManager.DiscoveryDone)
+            if (snmpManager.DiscoveryDone)
             {
                 return snmpManager.GetJsonData();
             }
@@ -183,7 +183,7 @@ namespace Server
             HttpListenerRequest request = context.Request;
             string requestedFile = request.RawUrl.Substring(1);
 
-            OutputMessage(requestedFile + " requested, total of " + computerList.Count.ToString()) ;
+            OutputMessage(requestedFile);
 
             if ((DateTime.Now - currentTime).TotalSeconds >= 10.0)
             {
@@ -203,16 +203,29 @@ namespace Server
                 }
                 return;
             }
-
-            if (computerList.Count != 0)
+            else if (requestedFile == "deviceList.json")
             {
-
-                if (requestedFile.Contains(".json"))
+                try
                 {
-                    string computerName = requestedFile.Substring(0, requestedFile.IndexOf(".json"));
+                    SendDeviceList(context.Response);
+                }
+                catch (Exception ex)
+                {
+                    ReportError(ex.Message);
+                }
+                return;
+            }
+            else
+            {
+                if (computerList.Count != 0)
+                {
+                    if (requestedFile.Contains(".json"))
+                    {
+                        string computerName = requestedFile.Substring(0, requestedFile.IndexOf(".json"));
 
-                    SendComputerData(context.Response, computerName);
-                    return;
+                        SendComputerData(context.Response, computerName);
+                        return;
+                    }
                 }
             }
 
@@ -228,11 +241,7 @@ namespace Server
                     if (!this.computerDatabase.ContainsKey(computerName))
                     {
                         this.computerDatabase.Add(computerName, receivedData);
-                        //Console.WriteLine("1: ");
-                        //Console.WriteLine(computerDatabase[computerName]);
                         this.computerTimes.Add(computerName, DateTime.Now);
-                        //Console.WriteLine("2: ");
-                        //Console.WriteLine(computerTimes[computerName]);
                         if (!this.computerList.Contains(computerName))
                         {
                             Dictionary<string, object> status = new Dictionary<string, object>();
@@ -248,11 +257,11 @@ namespace Server
                     {
                         this.computerDatabase[computerName] = receivedData;
                         this.computerTimes[computerName] = DateTime.Now;
-                        for(int i = 0; i < computerStates.Count; i++)
+                        for (int i = 0; i < computerStates.Count; i++)
                         {
-                            if(((Dictionary<string, object>)computerStates[i.ToString()])["Name"].ToString() == computerName)
+                            if (((Dictionary<string, object>)computerStates[i.ToString()])["Name"].ToString() == computerName)
                             {
-                                if(!(bool)((Dictionary<string, object>)computerStates[i.ToString()])["State"])
+                                if (!(bool)((Dictionary<string, object>)computerStates[i.ToString()])["State"])
                                 {
                                     this.change = true;
                                 }
@@ -284,16 +293,13 @@ namespace Server
         {
             DateTime referenceTime = DateTime.Now;
 
-            for(int i = 0; i < computerList.Count; i++)
+            for (int i = 0; i < computerList.Count; i++)
             {
                 if (((referenceTime - computerTimes[computerList[i]]).TotalSeconds >= 10.0) && Convert.ToBoolean(((Dictionary<string, object>)computerStates[i.ToString()])["State"]))
                 {
-                    /*Console.WriteLine("1: " + computerList[i]);
-                    Console.WriteLine("2: " + ((Dictionary<string, object>)computerStates[i.ToString()])["Name"].ToString());
-                    Console.WriteLine("3: " + Convert.ToBoolean(((Dictionary<string, object>)computerStates[i.ToString()])["State"]));*/
                     try
                     {
-                        if(computerList[i] == ((Dictionary<string, object>)computerStates[i.ToString()])["Name"].ToString())
+                        if (computerList[i] == ((Dictionary<string, object>)computerStates[i.ToString()])["Name"].ToString())
                         {
                             ((Dictionary<string, object>)this.computerStates[i.ToString()])["State"] = false;
                             this.change = true;
@@ -307,11 +313,44 @@ namespace Server
             }
         }
 
+        private void SendDeviceList(HttpListenerResponse response)
+        {
+            string json = "{\"empty\":\"empty\"}";
+
+            if(this.InterfacesDiscovered != null)
+            {
+                if (this.InterfacesDiscovered.Count <= 0)
+                {
+                    json = "{\"empty\":\"empty\"}";
+                }
+                else
+                {
+                    json = "{\"Devices\": ";
+                    json += JsonConvert.SerializeObject(this.InterfacesDiscovered);
+                    json += ",\"Count\": " + this.InterfacesDiscovered.Count;
+                    json += ",\"Change\": \"" + this.snmpManager.DataChanged + "\"}";
+                }
+            }
+
+            try
+            {
+                File.WriteAllText("deviceList.json", json);
+            }
+            catch
+            {
+
+            }
+
+            SendJson(response, json);
+
+            this.snmpManager.DataChanged = false;
+        }
+
         private void SendComputerList(HttpListenerResponse response)
         {
             string json;
 
-            if(this.computerList.Count <= 0)
+            if (this.computerList.Count <= 0)
             {
                 json = "{\"empty\":\"empty\"}";
             }
@@ -323,7 +362,14 @@ namespace Server
                 json += ",\"Change\": \"" + this.change + "\"}";
             }
 
-            Console.WriteLine("1: " + json);
+            try
+            {
+                File.WriteAllText("computerList.json", json);
+            }
+            catch
+            {
+
+            }
 
             SendJson(response, json);
 
@@ -470,5 +516,18 @@ namespace Server
         {
             get { return this.isRunning; }
         }
+
+        public Dictionary<int, NetworkInterface> NetworkInterfaces
+        {
+            get { return snmpManager.NetworkInterfaces; }
+            set { }
+        }
+
+        public Dictionary<int, object> InterfacesDiscovered
+        {
+            get { return snmpManager.InterfacesDiscovered; }
+            set { }
+        }
+
     }
 }

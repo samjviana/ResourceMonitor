@@ -1,4 +1,7 @@
-﻿function isMobile() {
+﻿var firstTime = true;
+var json_data = undefined;
+
+function isMobile() {
     try {
         document.createEvent("TouchEvent");
         return true;
@@ -86,32 +89,6 @@ $('.chart').easyPieChart({
     }
 });
 
-function perc2color(perc, min, max) {
-    if (perc >= 100) {
-        return "#FF0000";
-    } else if (perc <= 0) {
-        return "#00FF00";
-    }
-
-    var base = (max - min);
-
-    if (base == 0) { perc = 100; }
-    else {
-        perc = (perc - min) / base * 100;
-    }
-    var r, g, b = 0;
-    if (perc < 50) {
-        r = 255;
-        g = Math.round(5.1 * perc);
-    }
-    else {
-        g = 255;
-        r = Math.round(510 - 5.10 * perc);
-    }
-    var h = r * 0x10000 + g * 0x100 + b * 0x1;
-    return '#' + ('000000' + h.toString(16)).slice(-6);
-}
-
 (function ($) {
     $.fn.progressBar = function (givenValue) {
         const $this = $(this);
@@ -136,20 +113,23 @@ function perc2color(perc, min, max) {
     }
 }(jQuery));
 
-
-
 var computerData = [];
 function BuildSideBar() {
+    console.log(2);
     if (firstTime) {
         $.ajaxSetup({
             async: false
         });
     }
+    console.log(3);
 
-    $.getJSON('computerList.json', function (data) {
+    $.getJSON('deviceList.json', function (data) {
+        json_data = data;
+        console.log(json_data);
         if (data["empty"] == "empty") {
             return;
         }
+        /*
         if(data["Change"] == "False" && !firstTime) {
             return;
         }
@@ -211,7 +191,7 @@ function BuildSideBar() {
             } catch {
 
             }
-        }
+        }*/
     });
 }
 
@@ -244,14 +224,16 @@ function Loading() {
     $("#preloader").delay(250).fadeIn(function () {
         setTimeout(LoadData, 750);
 
-        setTimeout(Loaded, 2000);
+        setTimeout(Loaded, 000); // 2000
     });
 }
 
 function LoadData() {
-    return;
+    console.log(1);
     BuildSideBar();
+    console.log(10);
 
+    /*
     if (currentComputer == undefined) {
         return;
     }
@@ -263,11 +245,11 @@ function LoadData() {
         }
         /*
          * CPU
-         */
+         *
         BuildCpuCard();
         /*
          * GPU
-         */
+         *
         if (json_data["Hardware"]["GpuNvidia"].length != 0) {
             var gpu_type = "GpuNvidia";
         } else if (json_data["Hardware"]["GpuAti"].length != 0) {
@@ -324,7 +306,7 @@ function LoadData() {
         }
         /*
          * RAM
-         */
+         *
         var ram_model = json_data["Hardware"]["RAM"][0]["Name"];
         var ram_load = parseFloat(json_data["Hardware"]["RAM"][0]["Sensors"]["Load"]["Memory"]["Value"]).toFixed(1);
         var free_ram = parseFloat(json_data["Hardware"]["RAM"][0]["Sensors"]["Data"]["Available Memory"]["Value"]).toFixed(1);
@@ -340,7 +322,7 @@ function LoadData() {
         ram_chart.update(ram_load);
         /*
          * HDD
-         */
+         *
         for (let i = 0; i < json_data["Hardware"]["HDD"].length; i++) {
             if (document.getElementById("hdd" + i) == null) {
                 var hdd = document.createElement("div");
@@ -393,7 +375,7 @@ function LoadData() {
 
             }
         }
-    });
+    });*/
 
     if (firstTime) {
         firstTime = false;
@@ -492,6 +474,32 @@ function arrayContainsArray(superset, subset) {
     return subset.every(function (value) {
         return (superset.indexOf(value) >= 0);
     });
+}
+
+function perc2color(perc, min, max) {
+    if (perc >= 100) {
+        return "#FF0000";
+    } else if (perc <= 0) {
+        return "#00FF00";
+    }
+
+    var base = (max - min);
+
+    if (base == 0) { perc = 100; }
+    else {
+        perc = (perc - min) / base * 100;
+    }
+    var r, g, b = 0;
+    if (perc < 50) {
+        r = 255;
+        g = Math.round(5.1 * perc);
+    }
+    else {
+        g = 255;
+        r = Math.round(510 - 5.10 * perc);
+    }
+    var h = r * 0x10000 + g * 0x100 + b * 0x1;
+    return '#' + ('000000' + h.toString(16)).slice(-6);
 }
 
 function arraysEqual(a, b) {
