@@ -400,5 +400,11 @@
   <ItemGroup>
     <EmbeddedResource Include="Web\js\custom\script2.js" />
   </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Web\js\custom\bootstrap-treeview.js" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Web\css\custom\bootstrap-treeview.css" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

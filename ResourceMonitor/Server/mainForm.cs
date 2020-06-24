@@ -11,6 +11,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 
 namespace Server
 {
@@ -28,6 +29,7 @@ namespace Server
         private void MainForm_Load(object sender, EventArgs e)
         {
             server = new Server(Convert.ToInt32(this.portField.Value), this);
+            discoveryForm = new DiscoveryForm(server.NetworkInterfaces);
             server.Start();
 
             Thread progressThread = new Thread(new ThreadStart(ProgressUpdate));
@@ -41,6 +43,23 @@ namespace Server
             if (File.Exists(configFileName))
             {
                 string configData = File.ReadAllText(configFileName);
+                Dictionary<string, object> configs = JsonConvert.DeserializeObject<Dictionary<string, object>>(configData);
+
+                foreach (var config in configs)
+                {
+                    if (config.Key == "DiscoveryForm")
+                    {
+                        Dictionary<string, object> configDict = ((JObject)config.Value).ToObject<Dictionary<string, object>>();
+                        foreach (var discoveryFormCfg in configDict)
+                        {
+                            Boolean controlState = Boolean.Parse(discoveryFormCfg.Value.ToString());
+                            if(controlState)
+                            {
+                                discoveryForm = new DiscoveryForm(server.NetworkInterfaces, configDict);
+                            }
+                        }
+                    }
+                }
 
                 if (!ParseSettings(settingsManager.Load(configData)))
                 {
@@ -91,7 +110,7 @@ namespace Server
                         this.serverOutput.ScrollToCaret();
                     });
                 }
-                catch(Exception ex)
+                catch (Exception ex)
                 {
                     ReportError(ex.Message);
                 }
@@ -117,7 +136,7 @@ namespace Server
         private void MainForm_FormClosed(object sender, FormClosedEventArgs e)
         {
             server.Stop();
-            settingsManager.Save(this);
+            settingsManager.Save(this, discoveryForm);
         }
 
         private void startWithWindowsCheckBox_CheckedChanged(object sender, EventArgs e)
@@ -134,9 +153,9 @@ namespace Server
 
         private Boolean ParseSettings(Dictionary<string, object> settings)
         {
-            foreach(var setting in settings)
+            foreach (var setting in settings)
             {
-                if(setting.Value.GetType() == typeof(Newtonsoft.Json.Linq.JObject))
+                if (setting.Value.GetType() == typeof(JObject))
                 {
                     if (!ParseSettings(JsonConvert.DeserializeObject<Dictionary<string, object>>(setting.Value.ToString())))
                     {
@@ -176,7 +195,7 @@ namespace Server
         private void exitMenuItem_Click(object sender, EventArgs e)
         {
             server.Stop();
-            settingsManager.Save(this);
+            settingsManager.Save(this, discoveryForm);
             Dispose();
             Close();
         }
@@ -195,7 +214,6 @@ namespace Server
 
         private void button1_Click(object sender, EventArgs e)
         {
-            discoveryForm = new DiscoveryForm(server.NetworkInterfaces);
             discoveryForm.ShowDialog();
 
             return;
@@ -244,7 +262,7 @@ namespace Server
         private bool discoveryStarted = false;
         private void button2_Click(object sender, EventArgs e)
         {
-            if(!server.DiscoveryDone && server.IsRunning && !discoveryStarted)
+            if (!server.DiscoveryDone && server.IsRunning && !discoveryStarted)
             {
                 discoveryStarted = true;
                 server.StartDiscovery(discoveryForm.InterfacesToDiscover);

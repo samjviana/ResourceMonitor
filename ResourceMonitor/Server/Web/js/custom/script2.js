@@ -1,4 +1,5 @@
 ﻿var firstTime = true;
+var _json_data = '{"Devices": {"1":{"Name":"Ethernet 2","MAC":"0A:00:27:00:00:10","Gateway":"","IP":"192.168.1.1","Mask":"255.255.255.0","Network":"192.168.1.0","Broadcast":"192.168.1.255","Devices":[{"IP":"192.168.1.1","Hostname":"PC-SAMUEL","SNMP":[]}]},"2":{"Name":"Ethernet","MAC":"D0:17:C2:8E:9C:BE","Gateway":"192.168.0.1","IP":"192.168.0.2","Mask":"255.255.255.0","Network":"192.168.0.0","Broadcast":"192.168.0.255","Devices":[{"IP":"192.168.0.2","Hostname":"PC-SAMUEL","SNMP":{"sysDescr":"Hardware: Intel64 Family 6 Model 60 Stepping 3 AT/AT COMPATIBLE - Software: Windows Version 6.3 (Build 19041 Multiprocessor Free)","sysObjectID":"1.3.6.1.4.1.311.1.1.3.1.1","sysUpTime":"1d 22h 7m 14s 700ms","sysContact":"","sysName":"PC-SAMUEL"}},{"IP":"192.168.0.6","Hostname":"NOTEBOOK_DELL","SNMP":{"sysDescr":"Hardware: Intel64 Family 6 Model 61 Stepping 4 AT/AT COMPATIBLE - Software: Windows Version 6.3 (Build 18363 Multiprocessor Free)","sysObjectID":"1.3.6.1.4.1.311.1.1.3.1.1","sysUpTime":"12d 12h 34m 48s 970ms","sysContact":"","sysName":"NOTEBOOK_DELL"}},{"IP":"192.168.0.104","Hostname":"ESCRITORIO2-PC","SNMP":{"sysDescr":"Hardware: Intel64 Family 6 Model 28 Stepping 10 AT/AT COMPATIBLE - Software: Windows Version 6.1 (Build 7601 Multiprocessor Free)","sysObjectID":"1.3.6.1.4.1.311.1.1.3.1.1","sysUpTime":"0d 0h 8m 11s 270ms","sysContact":"Landinardo","sysName":"ESCRITORIO2-PC"}},{"IP":"192.168.0.199","Hostname":"ESCRITORIO","SNMP":{"sysDescr":"Hardware: Intel64 Family 6 Model 42 Stepping 7 AT/AT COMPATIBLE - Software: Windows Version 6.3 (Build 9600 Multiprocessor Free)","sysObjectID":"1.3.6.1.4.1.311.1.1.3.1.1","sysUpTime":"0d 0h 4m 20s 880ms","sysContact":"","sysName":"ESCRITORIO"}},{"IP":"192.168.0.7","Hostname":"SAMSUNG_LANVAN","SNMP":{"sysDescr":"Samsung Samsung M288x Series; V3.00.01.16     JAN-10-2017;Engine V1.00.14 10-16-2015;NIC 31.03.60_0.1_13-11-18;S/N NA06B07K522GN5A","sysObjectID":"1.3.6.1.4.1.236.11.5.1","sysUpTime":"0d 0h 11m 50s 590ms","sysContact":"Ivanis - Landinardo","sysName":"Samsung_LanVan"}},{"IP":"192.168.0.1","Hostname":"","SNMP":[]},{"IP":"192.168.0.4","Hostname":"EPSOND6E37B","SNMP":[]},{"IP":"192.168.0.102","Hostname":"","SNMP":[]},{"IP":"192.168.0.103","Hostname":"","SNMP":[]},{"IP":"192.168.0.101","Hostname":"","SNMP":[]},{"IP":"192.168.0.105","Hostname":"","SNMP":[]}]}},"Count": 2,"Change": "False"}';
 var json_data = undefined;
 
 function isMobile() {
@@ -14,12 +15,12 @@ $(document).ready(function () {
     $("#sidebar_toggle").on("click", function () {
         $("#sidebar").toggleClass("active");
         $('#content').toggleClass('moved');
-        if(isMobile()) {
+        if (isMobile()) {
             $('#sidebar_toggle').removeClass("not_mobile");
         } else {
             $('#sidebar_toggle').addClass("not_mobile");
         }
-        if($('#sidebar_toggle').hasClass("fa-arrow-right")) {
+        if ($('#sidebar_toggle').hasClass("fa-arrow-right")) {
             $('#sidebar_toggle').removeClass("fa-arrow-right");
             $('#sidebar_toggle').addClass("fa-arrow-left");
         } else {
@@ -113,102 +114,138 @@ $('.chart').easyPieChart({
     }
 }(jQuery));
 
-var computerData = [];
+var deviceData = [];
+var deviceList = [];
+var currentNetwork = undefined;
+var currentNetworkId = undefined;
+var changedNetwork = true;
+var currentDevice = undefined;
 function BuildSideBar() {
-    console.log(2);
+    var sidebarHeight = document.getElementById('sidebar').clientHeight;
+    var divPos = document.getElementById('network_device_list').getBoundingClientRect();
+    var scrollHeight = parseInt(sidebarHeight - divPos.top);
+
     if (firstTime) {
+
         $.ajaxSetup({
             async: false
         });
     }
-    console.log(3);
 
     $.getJSON('deviceList.json', function (data) {
         json_data = data;
         console.log(json_data);
+
+        //data = JSON.parse(json_data);
         if (data["empty"] == "empty") {
             return;
         }
-        /*
-        if(data["Change"] == "False" && !firstTime) {
+
+        if (data["Change"] == "False" && !firstTime && !changedNetwork) {
             return;
         }
 
-        computerData = data;
+        deviceData = data;
 
-        var computer_list = document.getElementById("computer_list");
-        computer_list.innerHTML = "";
+        var network_list = document.getElementById("network_list");
+        network_list.innerHTML = "";
 
-        computerList = data;
+        deviceList = data;
 
         if (firstTime) {
-            for (let i = 0; i < computerList["Count"]; i++) {
-                if (computerList["Computers"][i]["State"]) {
-                    currentComputer = computerList["Computers"][i]["Name"];
+            for (let i = 0, j = 0; i < deviceList["Count"] + j; i++) {
+                if (deviceList["Devices"][i] != undefined) {
+                    currentNetwork = deviceList["Devices"][i]["Network"];
+                    currentNetworkId = i;
                     break;
+                } else {
+                    j++;
                 }
-
             }
         }
 
-        for (let i = 0; i < computerList["Count"]; i++) {
-            var online = false;
-            if (computerList["Computers"][i]["State"]) {
-                online = true;
-            }
+        for (let i = 0, j = 0; i < deviceList["Count"] + j; i++) {
+            if (deviceList["Devices"][i] != undefined) {
+                var listElement = document.createElement("li");
 
-            var listElement = document.createElement("li");
+                var anchorElement = document.createElement("a");
+                anchorElement.setAttribute("href", "#");
+                anchorElement.setAttribute("onclick", "SetCurrentNetwork(this)");
+                anchorElement.setAttribute("net-id", i);
+                anchorElement.innerHTML = deviceList["Devices"][i]["Network"];
+                listElement.appendChild(anchorElement);
 
-            var onOffDiv = document.createElement("div");
-            var onOffIcon = document.createElement("i");
-            onOffDiv.setAttribute("class", "pl-1 pr-2");
-            if (online) {
-                onOffIcon.setAttribute("class", "fas fa-circle green-text");
+                network_list.appendChild(listElement);
+
+                var current_network = document.getElementById("current_network");
+                current_network.setAttribute("net-id", currentNetworkId);
+                current_network.innerHTML = currentNetwork;
+
+                if (anchorElement.innerHTML == currentNetwork) {
+                    listElement.classList.add("active")
+
+                    var network_device_list = document.getElementById("network_device_list");
+                    network_device_list.innerHTML = "";
+
+                    for (let k = 0; k < deviceList["Devices"][i]["Devices"].length; k++) {
+                        listElement = document.createElement("li");
+
+                        anchorElement = document.createElement("a");
+                        anchorElement.setAttribute("href", "#");
+                        anchorElement.setAttribute("onclick", "SetCurrentDevice(this)");
+                        anchorElement.innerHTML = deviceList["Devices"][i]["Devices"][k]["IP"];
+                        listElement.appendChild(anchorElement);
+
+                        network_device_list.setAttribute("style", "height: " + scrollHeight + "px !important");
+                        network_device_list.appendChild(listElement);
+
+                        if (firstTime && k == 0) {
+                            currentDevice = deviceList["Devices"][i]["Devices"][k]["IP"];
+                        }
+                    }
+                }
             } else {
-                onOffIcon.setAttribute("class", "fas fa-circle red-text");
+                j++;
             }
+        }
 
-            onOffDiv.appendChild(onOffIcon);
+        changedNetwork = false;
 
-            var anchorElement = document.createElement("a");
-
-
-            anchorElement.appendChild(onOffDiv);
-            anchorElement.appendChild(document.createTextNode(computerList["Computers"][i]["Name"]));
-            anchorElement.setAttribute("id", computerList["Computers"][i]["Name"]);
-            anchorElement.setAttribute("onclick", "SetCurrentComputer(this)");
-            anchorElement.setAttribute("class", "d-flex flex-row pl-2 pr-2");
+        /*
             listElement.appendChild(anchorElement);
-
+    
             var sidebar = document.getElementById("computer_list");
             var find = document.getElementById(computerList["Computers"][i]["Name"]);
             if (find == null) {
                 sidebar.appendChild(listElement);
             }
-
+    
             try {
                 document.getElementById(currentComputer).parentElement.classList.add("active");
             } catch {
-
+    
             }
         }*/
     });
 }
 
-function SetCurrentComputer(element) {
-    if (!element.parentElement.classList.contains("offline")) {
-        var previousComputer = sidebar.getElementsByClassName("active")[0].firstElementChild;
+function SetCurrentNetwork(element) {
+    changedNetwork = true;
 
-        sidebar.getElementsByClassName("active")[0].classList.remove("active");
+    var network_list = document.getElementById("network_list");
+    var previousNetwork = network_list.getElementsByClassName("active")[0];
 
-        element.parentElement.classList.add("active");
+    previousNetwork.classList.remove("active");
 
-        currentComputer = element.getAttribute("id");
+    element.parentElement.classList.add("active");
 
-        if (currentComputer != previousComputer.getAttribute("id")) {
-            cpuDropdownBuilded = false;
-            Loading();
-        }
+    currentNetwork = element.innerText;
+    currentNetworkId = element.getAttribute("net-id");
+
+    $("#dropdown_toggle").click();
+
+    if (currentNetwork != previousNetwork.innerText) {
+        Loading();
     }
 }
 
@@ -224,250 +261,22 @@ function Loading() {
     $("#preloader").delay(250).fadeIn(function () {
         setTimeout(LoadData, 750);
 
-        setTimeout(Loaded, 000); // 2000
+        setTimeout(Loaded, 2000); // 2000
     });
 }
 
 function LoadData() {
-    console.log(1);
     BuildSideBar();
-    console.log(10);
-
-    /*
-    if (currentComputer == undefined) {
-        return;
-    }
-
-    $.getJSON(currentComputer + ".json", function (data) {
-        json_data = data;
-        if (currentComputer == "PC-SAMUEL") {
-            json_data["Hardware"]["CPU"][1] = extraCpu;
-        }
-        /*
-         * CPU
-         *
-        BuildCpuCard();
-        /*
-         * GPU
-         *
-        if (json_data["Hardware"]["GpuNvidia"].length != 0) {
-            var gpu_type = "GpuNvidia";
-        } else if (json_data["Hardware"]["GpuAti"].length != 0) {
-            var gpu_type = "GpuAti";
-        } else {
-            var gpu_chart = window.chart = $('#gpu_load').data('easyPieChart');
-            gpu_chart.options.barColor = "#E1E1E1";
-            gpu_chart.options.trackColor = trackColor;
-            gpu_chart.update();
-
-            $('#gpu_memory_load').progressBar(0);
-            $('#gpu_temperature').progressBar(0);
-            $('#gpu_core_clock').progressBar(0);
-            $('#gpu_memory_clock').progressBar(0);
-
-            document.getElementById("gpu_card").classList.add("disabled")
-            document.getElementById("gpu_model").innerHTML = "-";
-            document.getElementById("gpu_memory_load_value").innerHTML = "-";
-            document.getElementById("gpu_temperature_value").innerHTML = "-";
-            document.getElementById("gpu_core_clock_value").innerHTML = "-";
-            document.getElementById("gpu_memory_clock_value").innerHTML = "-";
-
-            var gpu_type = "not found";
-        }
-        if (gpu_type != "not found") {
-            document.getElementById("gpu_card").classList.remove("disabled")
-
-            var gpu_model = json_data["Hardware"][gpu_type][0]["Name"];
-            var gpu_load = parseFloat(json_data["Hardware"][gpu_type][0]["Sensors"]["Load"]["GPU Core"]["Value"]).toFixed(1);
-            var gpu_memory_load = parseFloat(json_data["Hardware"][gpu_type][0]["Sensors"]["Load"]["GPU Memory"]["Value"]).toFixed(1);
-            var gpu_temperature = parseFloat(json_data["Hardware"][gpu_type][0]["Sensors"]["Temperature"]["GPU Core"]["Value"]).toFixed(1);
-            var gpu_max_temperature = parseFloat(json_data["Hardware"][gpu_type][0]["Sensors"]["Temperature"]["Maximum"]).toFixed(1);
-            var gpu_core_clock = parseFloat(json_data["Hardware"][gpu_type][0]["Sensors"]["Clock"]["GPU Core"]["Value"]).toFixed(1);
-            var gpu_max_core_clock = (parseFloat(json_data["Hardware"][gpu_type][0]["Sensors"]["Clock"]["GPU Core"]["Maximum"])).toFixed(1);
-            var gpu_memory_clock = parseFloat(json_data["Hardware"][gpu_type][0]["Sensors"]["Clock"]["GPU Memory"]["Value"]).toFixed(1);
-            var gpu_max_memory_clock = (parseFloat(json_data["Hardware"][gpu_type][0]["Sensors"]["Clock"]["GPU Memory"]["Maximum"])).toFixed(1);
-
-            document.getElementById("gpu_model").innerHTML = gpu_model;
-            document.getElementById("gpu_memory_load_value").innerHTML = gpu_memory_load + " %";
-            document.getElementById("gpu_temperature_value").innerHTML = gpu_temperature + " °C";
-            document.getElementById("gpu_core_clock_value").innerHTML = gpu_core_clock + " MHz";
-            document.getElementById("gpu_memory_clock_value").innerHTML = gpu_memory_clock + " MHz";
-
-            $('#gpu_memory_load').progressBar(gpu_memory_load);
-            $('#gpu_temperature').progressBar(parseFloat(mapValue(gpu_temperature, [0, gpu_max_temperature], [0, 100])));
-            $('#gpu_core_clock').progressBar(parseFloat(mapValue(gpu_core_clock, [0, gpu_max_core_clock], [0, 100])));
-            $('#gpu_memory_clock').progressBar(parseFloat(mapValue(gpu_memory_clock, [0, gpu_max_memory_clock], [0, 100])));
-
-            var gpu_chart = window.chart = $('#gpu_load').data('easyPieChart');
-            gpu_chart.options.barColor = function (percent) {
-                return perc2color(percent, 100, 0);
-            }
-            gpu_chart.update(gpu_load);
-        }
-        /*
-         * RAM
-         *
-        var ram_model = json_data["Hardware"]["RAM"][0]["Name"];
-        var ram_load = parseFloat(json_data["Hardware"]["RAM"][0]["Sensors"]["Load"]["Memory"]["Value"]).toFixed(1);
-        var free_ram = parseFloat(json_data["Hardware"]["RAM"][0]["Sensors"]["Data"]["Available Memory"]["Value"]).toFixed(1);
-        var used_ram = parseFloat(json_data["Hardware"]["RAM"][0]["Sensors"]["Data"]["Used Memory"]["Value"]).toFixed(1);
-        var total_ram = parseFloat(json_data["Hardware"]["RAM"][0]["Sensors"]["Data"]["Total Memory"]).toFixed(1);
-
-        document.getElementById("ram_model").innerHTML = ram_model;
-        document.getElementById("total_ram").innerHTML = "Total RAM: " + total_ram + " GB";
-        document.getElementById("free_ram").innerHTML = "Free RAM: " + free_ram + " GB";
-        document.getElementById("used_ram").innerHTML = "Used RAM: " + used_ram + " GB";
-
-        var ram_chart = window.chart = $('#ram_load').data('easyPieChart');
-        ram_chart.update(ram_load);
-        /*
-         * HDD
-         *
-        for (let i = 0; i < json_data["Hardware"]["HDD"].length; i++) {
-            if (document.getElementById("hdd" + i) == null) {
-                var hdd = document.createElement("div");
-                hdd.setAttribute("id", "hdd" + i);
-                hdd.setAttribute("class", "my-auto text-center py-1");
-
-                var rowDiv = document.createElement("div");
-                rowDiv.setAttribute("class", "row d-flex justify-content-between ml-1 mr-1");
-
-                var model = document.createElement("small");
-                var disk = document.createElement("small");
-                var storage = document.createElement("small");
-                model.setAttribute("id", "hdd" + i + "_model_label");
-                disk.setAttribute("id", "hdd" + i + "_disk_label");
-                storage.setAttribute("id", "hdd" + i + "_storage_label");
-
-                rowDiv.appendChild(model);
-                rowDiv.appendChild(disk);
-                rowDiv.appendChild(storage);
-
-                var hdd_progress = document.createElement("div");
-                hdd_progress.setAttribute("id", "hdd" + i + "_progress");
-                hdd_progress.setAttribute("class", "progress md-progress my-1 z-depth-0 border-0");
-
-                var hdd_bar = document.createElement("div");
-                hdd_bar.setAttribute("id", "hdd" + i + "_bar");
-                hdd_bar.setAttribute("class", "progress-bar z-depth-0");
-                hdd_bar.setAttribute("role", "progressbar");
-                hdd_bar.setAttribute("aria-valuenow", "0");
-                hdd_bar.setAttribute("aria-valuemin", "0");
-                hdd_bar.setAttribute("aria-valuemax", "100");
-
-                hdd_progress.appendChild(hdd_bar);
-
-                hdd.appendChild(rowDiv);
-                hdd.appendChild(hdd_progress);
-
-                document.getElementById("hdd_content").appendChild(hdd);
-            }
-
-            try {
-                var model = document.getElementById("hdd" + i + "_model_label");
-                var disk = document.getElementById("hdd" + i + "_disk_label");
-                var storage = document.getElementById("hdd" + i + "_storage_label");
-                model.innerHTML = json_data["Hardware"]["HDD"][i]["Name"];
-                disk.innerHTML = "";
-                storage.innerHTML = parseFloat(json_data["Hardware"]["HDD"][i]["Sensors"]["Load"]["Used Space"]["Value"]).toFixed(1) + " %";
-                $('#hdd' + i + '_progress').progressBar(parseFloat(json_data["Hardware"]["HDD"][i]["Sensors"]["Load"]["Used Space"]["Value"]).toFixed(1));
-            } catch {
-
-            }
-        }
-    });*/
 
     if (firstTime) {
+        getTree();
+
         firstTime = false;
 
         $.ajaxSetup({
             async: true
         });
     }
-}
-
-var cpuDropdownBuilded = false;
-var cpuId = undefined;
-function BuildCpuCard() {
-    if (cpuId == undefined) {
-        var cpu_id = 0;
-    } else {
-        cpu_id = cpuId;
-    }
-
-    if (json_data["Hardware"]["CPU"].length > 1) {
-        document.getElementById("cpu_id").innerHTML = "CPU#" + cpu_id;
-        document.getElementById("cpu_id").setAttribute("style", "");
-        document.getElementById("cpu_list").hidden = false;
-    } else {
-        document.getElementById("cpu_id").innerHTML = "CPU";
-        document.getElementById("cpu_id").setAttribute("style", "cursor: default");
-        document.getElementById("cpu_list").hidden = true;
-    }
-
-    if (!cpuDropdownBuilded) {
-        document.getElementById("cpu_list").innerHTML = "";
-        
-        for (let i = 0; i < json_data["Hardware"]["CPU"].length; i++) {
-            var dropdown = document.getElementById("cpu_list");
-
-            var item = document.createElement("a");
-            item.setAttribute("class", "dropdown-item");
-            item.setAttribute("onclick", "SetCurrentCPU(this)");
-            item.setAttribute("href", "#");
-            item.innerText = "CPU#" + i;
-
-            dropdown.appendChild(item);
-            if (i < json_data["Hardware"]["CPU"].length - 1) {
-                var divider = document.createElement("div");
-                divider.setAttribute("class", "dropdown-divider");
-
-                dropdown.appendChild(divider);
-            }
-        }
-        cpuDropdownBuilded = true;
-    }
-
-    try {
-        var cpu_model = json_data["Hardware"]["CPU"][cpu_id]["Name"];
-        var cpu_load = parseFloat(json_data["Hardware"]["CPU"][cpu_id]["Sensors"]["Load"]["CPU Total"]["Value"]).toFixed(1);
-        if(json_data["Hardware"]["CPU"][cpu_id]["Sensors"]["Temperature"]["CPU Package"] == undefined) {
-            var cpu_temperature = parseFloat(json_data["Hardware"]["CPU"][cpu_id]["Sensors"]["Temperature"]["Average"]).toFixed(1);
-        } else {
-            var cpu_temperature = parseFloat(json_data["Hardware"]["CPU"][cpu_id]["Sensors"]["Temperature"]["CPU Package"]["Value"]).toFixed(1);
-        }
-        var cpu_max_temperature = parseFloat(json_data["Hardware"]["CPU"][cpu_id]["Sensors"]["Temperature"]["Maximum"]).toFixed(1);
-        var cpu_clock = parseFloat(json_data["Hardware"]["CPU"][cpu_id]["Sensors"]["Clock"]["Average"]).toFixed(1);
-        var cpu_max_clock = parseFloat(json_data["Hardware"]["CPU"][cpu_id]["Sensors"]["Clock"]["Maximum"]).toFixed(1);
-        var cpu_power = parseFloat(json_data["Hardware"]["CPU"][cpu_id]["Sensors"]["Power"]["CPU Package"]["Value"]).toFixed(1);
-        var cpu_max_power = parseFloat(json_data["Hardware"]["CPU"][cpu_id]["Sensors"]["Power"]["Maximum"]).toFixed(1);
-    } catch {
-
-    }
-
-    document.getElementById("cpu_model").innerHTML = cpu_model;
-    document.getElementById("cpu_temperature_value").innerHTML = cpu_temperature + " °C";
-    document.getElementById("cpu_clock_value").innerHTML = cpu_clock + " MHz";
-    if(cpu_power == undefined) {
-        document.getElementById("cpu_power_value").innerHTML = "-";
-        $('#cpu_power').progressBar(0);
-    } else {
-        document.getElementById("cpu_power_value").innerHTML = cpu_power + " W";
-        $('#cpu_power').progressBar(parseFloat(mapValue(cpu_power, [0, cpu_max_power], [0, 100])));
-    }
-
-    $('#cpu_temperature').progressBar(parseFloat(mapValue(cpu_temperature, [0, cpu_max_temperature], [0, 100])));
-    $('#cpu_clock').progressBar(parseFloat(mapValue(cpu_clock, [0, cpu_max_clock], [0, 100])));
-
-    var cpu_chart = window.chart = $('#cpu_load').data('easyPieChart');
-    cpu_chart.update(cpu_load);
-}
-
-function SetCurrentCPU(element) {
-    var id = parseInt(element.innerHTML.split('#')[1]);
-    
-    cpuId = id;
-    BuildCpuCard();
 }
 
 function arrayContainsArray(superset, subset) {
@@ -521,9 +330,257 @@ function arraysEqual(a, b) {
 }
 
 function getSecondPart(str) {
-	return str.split('#')[1];
+    return str.split('#')[1];
 }
 
 function mapValue(value, from, to) {
     return to[0] + (value - from[0]) * (to[1] - to[0]) / (from[1] - from[0]);
 }
+
+function getTree() {
+    $(function () {
+
+        var defaultData = [
+            {
+                text: 'Parent 1',
+                href: '#parent1',
+                tags: ['4'],
+                nodes: [
+                    {
+                        text: 'Child 1',
+                        href: '#child1',
+                        tags: ['2'],
+                        nodes: [
+                            {
+                                text: 'Grandchild 1',
+                                href: '#grandchild1',
+                                tags: ['0']
+                            },
+                            {
+                                text: 'Grandchild 2',
+                                href: '#grandchild2',
+                                tags: ['0']
+                            }
+                        ]
+                    },
+                    {
+                        text: 'Child 2',
+                        href: '#child2',
+                        tags: ['0']
+                    }
+                ]
+            },
+            {
+                text: 'Parent 2',
+                href: '#parent2',
+                tags: ['0']
+            },
+            {
+                text: 'Parent 3',
+                href: '#parent3',
+                tags: ['0']
+            },
+            {
+                text: 'Parent 4',
+                href: '#parent4',
+                tags: ['0']
+            },
+            {
+                text: 'Parent 5',
+                href: '#parent5',
+                tags: ['0']
+            }
+        ];
+
+        var alternateData = [
+            {
+                text: 'Parent 1',
+                tags: ['2'],
+                nodes: [
+                    {
+                        text: 'Child 1',
+                        tags: ['3'],
+                        nodes: [
+                            {
+                                text: 'Grandchild 1',
+                                tags: ['6']
+                            },
+                            {
+                                text: 'Grandchild 2',
+                                tags: ['3']
+                            }
+                        ]
+                    },
+                    {
+                        text: 'Child 2',
+                        tags: ['3']
+                    }
+                ]
+            },
+            {
+                text: 'Parent 2',
+                tags: ['7']
+            },
+            {
+                text: 'Parent 3',
+                icon: 'glyphicon glyphicon-earphone',
+                href: '#demo',
+                tags: ['11']
+            },
+            {
+                text: 'Parent 4',
+                icon: 'glyphicon glyphicon-cloud-download',
+                href: '/demo.html',
+                tags: ['19'],
+                selected: true
+            },
+            {
+                text: 'Parent 5',
+                icon: 'glyphicon glyphicon-certificate',
+                color: 'pink',
+                backColor: 'red',
+                href: 'http://www.tesco.com',
+                tags: ['available', '0']
+            }
+        ];
+
+        var json = '[' +
+            '{' +
+            '"text": "Parent 1",' +
+            '"nodes": [' +
+            '{' +
+            '"text": "Child 1",' +
+            '"nodes": [' +
+            '{' +
+            '"text": "Grandchild 1"' +
+            '},' +
+            '{' +
+            '"text": "Grandchild 2"' +
+            '}' +
+            ']' +
+            '},' +
+            '{' +
+            '"text": "Child 2"' +
+            '}' +
+            ']' +
+            '},' +
+            '{' +
+            '"text": "Parent 2"' +
+            '},' +
+            '{' +
+            '"text": "Parent 3"' +
+            '},' +
+            '{' +
+            '"text": "Parent 4"' +
+            '},' +
+            '{' +
+            '"text": "Parent 5"' +
+            '}' +
+            ']';
+
+
+        $('#treeview1').treeview({
+            data: defaultData
+        });
+
+        var search = function (e) {
+            var pattern = $('#input-search').val();
+            var options = {
+                ignoreCase: $('#chk-ignore-case').is(':checked'),
+                exactMatch: $('#chk-exact-match').is(':checked'),
+                revealResults: $('#chk-reveal-results').is(':checked')
+            };
+            var results = $searchableTree.treeview('search', [pattern, options]);
+
+            var output = '<p>' + results.length + ' matches found</p>';
+            $.each(results, function (index, result) {
+                output += '<p>- ' + result.text + '</p>';
+            });
+            $('#search-output').html(output);
+        }
+
+        $('#btn-search').on('click', search);
+        $('#input-search').on('keyup', search);
+
+        $('#btn-clear-search').on('click', function (e) {
+            $searchableTree.treeview('clearSearch');
+            $('#input-search').val('');
+            $('#search-output').html('');
+        });
+
+
+        var initSelectableTree = function () {
+            return $('#treeview-selectable').treeview({
+                data: defaultData,
+                multiSelect: $('#chk-select-multi').is(':checked'),
+                onNodeSelected: function (event, node) {
+                    $('#selectable-output').prepend('<p>' + node.text + ' was selected</p>');
+                },
+                onNodeUnselected: function (event, node) {
+                    $('#selectable-output').prepend('<p>' + node.text + ' was unselected</p>');
+                }
+            });
+        };
+        var $selectableTree = initSelectableTree();
+
+        var findSelectableNodes = function () {
+            return $selectableTree.treeview('search', [$('#input-select-node').val(), { ignoreCase: false, exactMatch: false }]);
+        };
+        var selectableNodes = findSelectableNodes();
+
+        $('#chk-select-multi:checkbox').on('change', function () {
+            console.log('multi-select change');
+            $selectableTree = initSelectableTree();
+            selectableNodes = findSelectableNodes();
+        });
+
+        // Select/unselect/toggle nodes
+        $('#input-select-node').on('keyup', function (e) {
+            selectableNodes = findSelectableNodes();
+            $('.select-node').prop('disabled', !(selectableNodes.length >= 1));
+        });
+
+        $('#btn-select-node.select-node').on('click', function (e) {
+            $selectableTree.treeview('selectNode', [selectableNodes, { silent: $('#chk-select-silent').is(':checked') }]);
+        });
+
+        $('#btn-unselect-node.select-node').on('click', function (e) {
+            $selectableTree.treeview('unselectNode', [selectableNodes, { silent: $('#chk-select-silent').is(':checked') }]);
+        });
+
+        $('#btn-toggle-selected.select-node').on('click', function (e) {
+            $selectableTree.treeview('toggleNodeSelected', [selectableNodes, { silent: $('#chk-select-silent').is(':checked') }]);
+        });
+
+        var $expandibleTree = $('#treeview-expandible').treeview({
+            data: defaultData,
+            onNodeCollapsed: function (event, node) {
+                $('#expandible-output').prepend('<p>' + node.text + ' was collapsed</p>');
+            },
+            onNodeExpanded: function (event, node) {
+                $('#expandible-output').prepend('<p>' + node.text + ' was expanded</p>');
+            }
+        });
+
+        var findExpandibleNodess = function () {
+            return $expandibleTree.treeview('search', [$('#input-expand-node').val(), { ignoreCase: false, exactMatch: false }]);
+        };
+        var expandibleNodes = findExpandibleNodess();
+
+        // Expand/collapse/toggle nodes
+        $('#input-expand-node').on('keyup', function (e) {
+            expandibleNodes = findExpandibleNodess();
+            $('.expand-node').prop('disabled', !(expandibleNodes.length >= 1));
+        });
+
+        $('#btn-expand-node.expand-node').on('click', function (e) {
+            var levels = $('#select-expand-node-levels').val();
+            $expandibleTree.treeview('expandNode', [expandibleNodes, { levels: levels, silent: $('#chk-expand-silent').is(':checked') }]);
+        });
+
+        $('#btn-collapse-node.expand-node').on('click', function (e) {
+            $expandibleTree.treeview('collapseNode', [expandibleNodes, { silent: $('#chk-expand-silent').is(':checked') }]);
+        });
+    })
+}
+

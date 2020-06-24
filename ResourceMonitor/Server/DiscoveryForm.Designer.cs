@@ -175,6 +175,7 @@
             this.Controls.Add(this.checkBox1);
             this.Controls.Add(this.textBox1);
             this.Name = "DiscoveryForm";
+            this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
             this.Text = "DiscoveryForm";
             this.Load += new System.EventHandler(this.DiscoveryForm_Load);
             this.ResumeLayout(false);

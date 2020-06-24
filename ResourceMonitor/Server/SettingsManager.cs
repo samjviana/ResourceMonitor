@@ -18,27 +18,45 @@ namespace Server
             this.settings = new Dictionary<string, object>();
         }
 
-        public void Save(MainForm mainForm)
+        public void Save(MainForm mainForm, DiscoveryForm discoveryForm)
         {
-            foreach(Control control in mainForm.Controls)
+            Dictionary<string, object> config = new Dictionary<string, object>();
+            Dictionary<string, object> controlStates = new Dictionary<string, object>();
+
+            foreach (Control control in mainForm.Controls)
             {
                 if(control.GetType() == typeof(CheckBox))
                 {
-                    this.settings.Add(control.Name, ((CheckBox)control).Checked.ToString());
+                    controlStates.Add(control.Name, ((CheckBox)control).Checked.ToString());
                 }
                 else if(control.GetType() == typeof(NumericUpDown))
                 {
-                    this.settings.Add(control.Name, ((NumericUpDown)control).Value);
+                    controlStates.Add(control.Name, ((NumericUpDown)control).Value);
                 }
 
                 if (control.HasChildren)
                 {
-                    this.settings.Add(control.Name + ".Controls", recurseControl(control.Controls));
+                    controlStates.Add(control.Name + ".Controls", recurseControl(control.Controls));
                 }
             }
 
-            Dictionary<string, object> config = new Dictionary<string, object>();
-            config.Add(mainForm.Name, this.settings);
+            config.Add(mainForm.Name, controlStates);
+            controlStates = new Dictionary<string, object>();
+
+            foreach(Control control in discoveryForm.Controls)
+            {
+                if(control.GetType() == typeof(CheckBox))
+                {
+                    controlStates.Add(control.Name, ((CheckBox)control).Checked.ToString());
+                }
+
+                if (control.HasChildren)
+                {
+                    controlStates.Add(control.Name + ".Controls", recurseControl(control.Controls));
+                }
+            }
+
+            config.Add(discoveryForm.Name, controlStates);
 
             string configData = JsonConvert.SerializeObject(config, Formatting.Indented);
 
