@@ -28,6 +28,7 @@ namespace Server
         private bool change;
         private SnmpManager snmpManager;
         private bool isRunning;
+        private bool webTrigger;
 
         public Server(int port, MainForm serverParent = null)
         {
@@ -41,6 +42,7 @@ namespace Server
             this.currentTime = DateTime.Now;
             this.counter = 0;
             this.change = false;
+            this.webTrigger = false;
 
             if (serverParent != null)
             {
@@ -191,6 +193,25 @@ namespace Server
                 currentTime = DateTime.Now;
             }
 
+            if(requestedFile == "startDiscovery")
+            {
+                Dictionary<int, NetworkInterface> interfacesToDiscover = new Dictionary<int, NetworkInterface>();
+                interfacesToDiscover.Add(0, snmpManager.NetworkInterfaces[0]);
+                StartDiscovery(interfacesToDiscover);
+
+                try
+                {
+                    SendDeviceList(context.Response);
+                }
+                catch (Exception ex)
+                {
+                    ReportError(ex.Message);
+                }
+
+                this.webTrigger = true;
+                return;
+            }
+
             if (requestedFile == "computerList.json")
             {
                 try
@@ -328,6 +349,15 @@ namespace Server
                     json = "{\"Devices\": ";
                     json += JsonConvert.SerializeObject(this.InterfacesDiscovered);
                     json += ",\"Count\": " + this.InterfacesDiscovered.Count;
+                    if(this.webTrigger)
+                    {
+                        this.webTrigger = false;
+                        json += ",\"Change\": \"true\"}";
+                    } 
+                    else
+                    {
+
+                    }
                     json += ",\"Change\": \"" + this.snmpManager.DataChanged + "\"}";
                 }
             }

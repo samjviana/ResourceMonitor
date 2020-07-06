@@ -65,7 +65,7 @@ a:focus {
 
 #sidebar .sidebar-header .icon.not_mobile:hover {
     border-radius: 0px 25px 25px 0px;
-    /*background-image: linear-gradient(to right, #6d7fcc 1%, #738dd5 99%);*/linear-gradient(red, yellow 10%, green 20%);
+    /*background-image: linear-gradient(to right, #6d7fcc 1%, #738dd5 99%);linear-gradient(red, yellow 10%, green 20%);*/
     background-image: linear-gradient(to right, #6d7fcc 10%, #738dd5 40%);
     /*background-color: #738dd5;*/
     /*transform: translate(78px, 20px);*/
@@ -79,6 +79,7 @@ a:focus {
 #sidebar ul p {
     color: #fff;
     padding: 10px;
+    background-color: #6d7fcc;
 }
 
 #sidebar ul li a {
@@ -151,6 +152,16 @@ a.article,
 a.article:hover {
     background: #6d7fcc !important;
     color: #fff !important;
+}
+
+.sidebar-button {
+    background-color: #ffffff;
+    color: #7386D5;
+}
+
+.sidebar-button:hover {
+    background-color: #7386D5;
+    color: #fff;
 }
 
 /* ---------------------------------------------------

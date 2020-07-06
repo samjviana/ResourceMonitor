@@ -1,9 +1,11 @@
-﻿var currentComputer = undefined;
+﻿var currentComputer = sessionStorage.getItem("currentComputer", currentComputer);
 var computerList = [];
 var firstTime = true;
 var json_data = undefined;
 
 var extraCpu = JSON.parse('{"Name": "Intel Pentium G620","SubHardware": {},"Sensors": {"Voltage": {},"Clock": {"MaxClockSpeed": "2600","CPU Core #1": {"Value": 2594.10669},"CPU Core #2": {"Value": 2594.10669},"Bus Speed": {"Value": 99.77333},"Average Clock": 2594.106689453125},"Temperature": {"MaxTemperature": "102","CPU Core #1": {"Value": 38.0},"CPU Core #2": {"Value": 41.0},"CPU Package": {"Value": 42.0}},"Load": {"CPU Core #1": {"Value": 0.0},"CPU Core #2": {"Value": 100.0},"CPU Total": {"Value": 50.0}},"Fan": {},"Flow": {},"Control": {},"Level": {},"Factor": {},"Power": {"MaxTDP": "65","CPU Package": {"Value": 17.08072},"CPU Cores": {"Value": 12.9638481},"CPU Graphics": {"Value": 0.1728383}},"Data": {},"SmallData": {},"Throughput": {}},"Core Number": 2}');
+
+var firstLoad = sessionStorage.getItem("first_time");
 
 function isMobile() {
     try {
@@ -16,6 +18,10 @@ function isMobile() {
 
 $(document).ready(function () {
     $("#sidebar_toggle").on("click", function () {
+        if(!firstLoad) {
+            alert("Selecione um computador!");
+            return;
+        }
         $("#sidebar").toggleClass("active");
         $('#content').toggleClass('moved');
         if(isMobile()) {
@@ -47,11 +53,18 @@ $(document).ready(function () {
         $(".swipe-area").swipe({
             allowPageScroll: "vertical",
             swipeRight: function (event, direction, distance, duration, fingerCount, finderData, currentDirection) {
+                if(!firstLoad) {
+                    alert("Selecione um computador!");
+                    return;
+                }
                 $("#sidebar").removeClass("active");
                 $('#content').addClass('moved');
                 if ($(".navbar-collapse").hasClass("navbar-collapse collapse show")) {
                     $(".navbar-toggler").click();
                 }
+
+                $('#sidebar_toggle').removeClass("fa-arrow-right");
+                $('#sidebar_toggle').addClass("fa-arrow-left");
             },
             swipeLeft: function (event, direction, distance, duration, fingerCount, finderData, currentDirection) {
                 $("#sidebar").addClass("active");
@@ -59,6 +72,8 @@ $(document).ready(function () {
                 if ($(".navbar-collapse").hasClass("navbar-collapse collapse show")) {
                     $(".navbar-toggler").click();
                 }
+                $('#sidebar_toggle').removeClass("fa-arrow-left");
+                $('#sidebar_toggle').addClass("fa-arrow-right");
             }
         });
     }
@@ -157,6 +172,9 @@ function perc2color(perc, min, max) {
 
 
 var computerData = [];
+var globalData = [];
+var loadOneTime = false;
+var sidebarBuilded = false;
 function BuildSideBar() {
     if (firstTime) {
         $.ajaxSetup({
@@ -165,13 +183,24 @@ function BuildSideBar() {
     }
 
     $.getJSON('computerList.json', function (data) {
+        globalData = data;
+
         if (data["empty"] == "empty") {
             return;
         }
-        if(data["Change"] == "False" && !firstTime) {
+
+        console.log(2);
+        if(data["Change"] == "False" && sidebarBuilded) {
+            console.log(3);
             return;
+        } else if(data["Change"] == "True") {
+            loadOneTime = false;
         }
 
+        if(loadOneTime) {
+            return;
+        }
+        
         computerData = data;
 
         var computer_list = document.getElementById("computer_list");
@@ -179,7 +208,8 @@ function BuildSideBar() {
 
         computerList = data;
 
-        if (firstTime) {
+        console.log(2);
+        if (firstLoad) {
             for (let i = 0; i < computerList["Count"]; i++) {
                 if (computerList["Computers"][i]["State"]) {
                     currentComputer = computerList["Computers"][i]["Name"];
@@ -210,7 +240,6 @@ function BuildSideBar() {
 
             var anchorElement = document.createElement("a");
 
-
             anchorElement.appendChild(onOffDiv);
             anchorElement.appendChild(document.createTextNode(computerList["Computers"][i]["Name"]));
             anchorElement.setAttribute("id", computerList["Computers"][i]["Name"]);
@@ -218,7 +247,7 @@ function BuildSideBar() {
             anchorElement.setAttribute("class", "d-flex flex-row pl-2 pr-2");
             listElement.appendChild(anchorElement);
 
-            var sidebar = document.getElementById("computer_list");
+            let sidebar = document.getElementById("computer_list");
             var find = document.getElementById(computerList["Computers"][i]["Name"]);
             if (find == null) {
                 sidebar.appendChild(listElement);
@@ -230,21 +259,35 @@ function BuildSideBar() {
 
             }
         }
+
+        if(!loadOneTime) {
+            loadOneTime = true;
+        }
+
+        sidebarBuilded = true;
     });
 }
 
+var computerChanged = false;
 function SetCurrentComputer(element) {
+    let sidebar = document.getElementById("computer_list");
     if (!element.parentElement.classList.contains("offline")) {
-        var previousComputer = sidebar.getElementsByClassName("active")[0].firstElementChild;
+        let activeComputer = sidebar.getElementsByClassName("active")[0];
+        let previousComputer = undefined;
 
-        sidebar.getElementsByClassName("active")[0].classList.remove("active");
+        if(activeComputer != undefined) {
+            previousComputer = activeComputer.firstElementChild;
+            activeComputer.classList.remove("active");
+        }
 
         element.parentElement.classList.add("active");
 
         currentComputer = element.getAttribute("id");
+        sessionStorage.setItem("currentComputer", currentComputer);
 
-        if (currentComputer != previousComputer.getAttribute("id")) {
+        if (!firstLoad || (currentComputer != previousComputer.getAttribute("id"))) {
             cpuDropdownBuilded = false;
+            computerChanged = true;
             Loading();
         }
     }
@@ -254,25 +297,77 @@ function Loaded() {
     $('#preloader .inner').fadeOut();
     $('#preloader').delay(0).fadeOut('slow');
     $('body').delay(250).css({ 'overflow': 'visible' });
+
+    if(!firstLoad) {
+        $("#sidebar").removeClass("active");
+        $('#content').addClass('moved');
+        if(isMobile()) {
+            $('#sidebar_toggle').removeClass("not_mobile");
+        } else {
+            $('#sidebar_toggle').addClass("not_mobile");
+        }
+        $('#sidebar_toggle').removeClass("fa-arrow-right");
+        $('#sidebar_toggle').addClass("fa-arrow-left");
+    }
+    if(computerChanged && !firstLoad) {
+        computerChanged = false;
+
+        $("#sidebar").addClass("active");
+        $('#content').removeClass('moved');
+        if(isMobile()) {
+            $('#sidebar_toggle').removeClass("not_mobile");
+        } else {
+            $('#sidebar_toggle').addClass("not_mobile");
+        }
+        $('#sidebar_toggle').addClass("fa-arrow-right");
+        $('#sidebar_toggle').removeClass("fa-arrow-left");    
+
+        // first time loaded!
+        console.log("first time");
+        sessionStorage.setItem("first_time","1");
+        firstLoad = true;
+    }
+    if(computerChanged) {
+        computerChanged = false;
+
+        $("#sidebar").addClass("active");
+        $('#content').removeClass('moved');
+        if(isMobile()) {
+            $('#sidebar_toggle').removeClass("not_mobile");
+        } else {
+            $('#sidebar_toggle').addClass("not_mobile");
+        }
+        $('#sidebar_toggle').addClass("fa-arrow-right");
+        $('#sidebar_toggle').removeClass("fa-arrow-left");    
+    }
 }
 
+var doneLoading = false;
 function Loading() {
+    doneLoading = false;
+
     $("#preloader .inner").fadeIn();
     $("body").delay(250).css({ "overflow": "hidden" });
     $("#preloader").delay(250).fadeIn(function () {
+        doneLoading = true;
+
         var hdd_content = document.getElementById("hdd_content");
         hdd_content.innerHTML = "";
 
-        setTimeout(LoadData, 750);
+        setTimeout(LoadData, 800);
 
-        setTimeout(Loaded, 2000);
+        setTimeout(Loaded, 1500);    
     });
 }
 
 function LoadData() {
+    sidebarBuilded = false;
     BuildSideBar();
 
     if (currentComputer == undefined) {
+        return;
+    }
+    if(!firstLoad && !computerChanged) {
         return;
     }
 
@@ -281,6 +376,10 @@ function LoadData() {
         if (currentComputer == "PC-SAMUEL") {
             json_data["Hardware"]["CPU"][1] = extraCpu;
         }
+
+        let innerText = currentComputer;
+        $('#computer_name').html(innerText);        
+
         /*
          * CPU
          */

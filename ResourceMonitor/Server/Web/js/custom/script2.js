@@ -1,6 +1,9 @@
 ﻿var firstTime = true;
 var _json_data = '{"Devices": {"1":{"Name":"Ethernet 2","MAC":"0A:00:27:00:00:10","Gateway":"","IP":"192.168.1.1","Mask":"255.255.255.0","Network":"192.168.1.0","Broadcast":"192.168.1.255","Devices":[{"IP":"192.168.1.1","Hostname":"PC-SAMUEL","SNMP":[]}]},"2":{"Name":"Ethernet","MAC":"D0:17:C2:8E:9C:BE","Gateway":"192.168.0.1","IP":"192.168.0.2","Mask":"255.255.255.0","Network":"192.168.0.0","Broadcast":"192.168.0.255","Devices":[{"IP":"192.168.0.2","Hostname":"PC-SAMUEL","SNMP":{"sysDescr":"Hardware: Intel64 Family 6 Model 60 Stepping 3 AT/AT COMPATIBLE - Software: Windows Version 6.3 (Build 19041 Multiprocessor Free)","sysObjectID":"1.3.6.1.4.1.311.1.1.3.1.1","sysUpTime":"1d 22h 7m 14s 700ms","sysContact":"","sysName":"PC-SAMUEL"}},{"IP":"192.168.0.6","Hostname":"NOTEBOOK_DELL","SNMP":{"sysDescr":"Hardware: Intel64 Family 6 Model 61 Stepping 4 AT/AT COMPATIBLE - Software: Windows Version 6.3 (Build 18363 Multiprocessor Free)","sysObjectID":"1.3.6.1.4.1.311.1.1.3.1.1","sysUpTime":"12d 12h 34m 48s 970ms","sysContact":"","sysName":"NOTEBOOK_DELL"}},{"IP":"192.168.0.104","Hostname":"ESCRITORIO2-PC","SNMP":{"sysDescr":"Hardware: Intel64 Family 6 Model 28 Stepping 10 AT/AT COMPATIBLE - Software: Windows Version 6.1 (Build 7601 Multiprocessor Free)","sysObjectID":"1.3.6.1.4.1.311.1.1.3.1.1","sysUpTime":"0d 0h 8m 11s 270ms","sysContact":"Landinardo","sysName":"ESCRITORIO2-PC"}},{"IP":"192.168.0.199","Hostname":"ESCRITORIO","SNMP":{"sysDescr":"Hardware: Intel64 Family 6 Model 42 Stepping 7 AT/AT COMPATIBLE - Software: Windows Version 6.3 (Build 9600 Multiprocessor Free)","sysObjectID":"1.3.6.1.4.1.311.1.1.3.1.1","sysUpTime":"0d 0h 4m 20s 880ms","sysContact":"","sysName":"ESCRITORIO"}},{"IP":"192.168.0.7","Hostname":"SAMSUNG_LANVAN","SNMP":{"sysDescr":"Samsung Samsung M288x Series; V3.00.01.16     JAN-10-2017;Engine V1.00.14 10-16-2015;NIC 31.03.60_0.1_13-11-18;S/N NA06B07K522GN5A","sysObjectID":"1.3.6.1.4.1.236.11.5.1","sysUpTime":"0d 0h 11m 50s 590ms","sysContact":"Ivanis - Landinardo","sysName":"Samsung_LanVan"}},{"IP":"192.168.0.1","Hostname":"","SNMP":[]},{"IP":"192.168.0.4","Hostname":"EPSOND6E37B","SNMP":[]},{"IP":"192.168.0.102","Hostname":"","SNMP":[]},{"IP":"192.168.0.103","Hostname":"","SNMP":[]},{"IP":"192.168.0.101","Hostname":"","SNMP":[]},{"IP":"192.168.0.105","Hostname":"","SNMP":[]}]}},"Count": 2,"Change": "False"}';
 var json_data = undefined;
+var discovery = false;
+var firstDiscovery = true;
+var firstLoad = sessionStorage.getItem("first_time2");
 
 function isMobile() {
     try {
@@ -13,20 +16,25 @@ function isMobile() {
 
 $(document).ready(function () {
     $("#sidebar_toggle").on("click", function () {
+        if(!firstLoad) {
+            alert("Selecione um dispositivo!");
+            return;
+        }
         $("#sidebar").toggleClass("active");
         $('#content').toggleClass('moved');
-        if (isMobile()) {
+        if(isMobile()) {
             $('#sidebar_toggle').removeClass("not_mobile");
         } else {
             $('#sidebar_toggle').addClass("not_mobile");
         }
-        if ($('#sidebar_toggle').hasClass("fa-arrow-right")) {
+        if($('#sidebar_toggle').hasClass("fa-arrow-right")) {
             $('#sidebar_toggle').removeClass("fa-arrow-right");
             $('#sidebar_toggle').addClass("fa-arrow-left");
         } else {
             $('#sidebar_toggle').removeClass("fa-arrow-left");
             $('#sidebar_toggle').addClass("fa-arrow-right");
         }
+        //$('#sidebar_toggle').toggle();
     });
 
     $("#darkTheme").on("click", function () {
@@ -43,11 +51,18 @@ $(document).ready(function () {
         $(".swipe-area").swipe({
             allowPageScroll: "vertical",
             swipeRight: function (event, direction, distance, duration, fingerCount, finderData, currentDirection) {
+                if(!firstLoad) {
+                    alert("Selecione um dispositivo!");
+                    return;
+                }
                 $("#sidebar").removeClass("active");
                 $('#content').addClass('moved');
                 if ($(".navbar-collapse").hasClass("navbar-collapse collapse show")) {
                     $(".navbar-toggler").click();
                 }
+
+                $('#sidebar_toggle').removeClass("fa-arrow-right");
+                $('#sidebar_toggle').addClass("fa-arrow-left");
             },
             swipeLeft: function (event, direction, distance, duration, fingerCount, finderData, currentDirection) {
                 $("#sidebar").addClass("active");
@@ -55,6 +70,8 @@ $(document).ready(function () {
                 if ($(".navbar-collapse").hasClass("navbar-collapse collapse show")) {
                     $(".navbar-toggler").click();
                 }
+                $('#sidebar_toggle').removeClass("fa-arrow-left");
+                $('#sidebar_toggle').addClass("fa-arrow-right");
             }
         });
     }
@@ -71,6 +88,19 @@ $(document).ready(function () {
 
     setInterval(LoadData, 1000);
 });
+
+function buscar() {
+    if(discovery) {
+        return;
+    }
+    discovery = true;
+
+    $('#buscar_icon').removeClass('fa-search');
+    $('#buscar_button').html('CARREGANDO <i id="buscar_icon" class="px-1 fas fa-sync fa-spin"></i>');
+
+    $.getJSON('startDiscovery', function(data) {
+    });
+}
 
 $('.chart').easyPieChart({
     size: 135,
@@ -120,6 +150,7 @@ var currentNetwork = undefined;
 var currentNetworkId = undefined;
 var changedNetwork = true;
 var currentDevice = undefined;
+var loadOneTime = false;
 function BuildSideBar() {
     var sidebarHeight = document.getElementById('sidebar').clientHeight;
     var divPos = document.getElementById('network_device_list').getBoundingClientRect();
@@ -134,12 +165,20 @@ function BuildSideBar() {
 
     $.getJSON('deviceList.json', function (data) {
         json_data = data;
-        console.log(json_data);
 
         //data = JSON.parse(json_data);
         if (data["empty"] == "empty") {
             return;
         }
+
+        if(loadOneTime) {
+            return;
+        }
+        
+        discovery = false;
+
+        $('#buscar_icon').removeClass('fa-sync fa-spin');
+        $('#buscar_button').html('BUSCAR <i id="buscar_icon" class="px-1 fas fa-search"></i>');
 
         if (data["Change"] == "False" && !firstTime && !changedNetwork) {
             return;
@@ -152,10 +191,11 @@ function BuildSideBar() {
 
         deviceList = data;
 
-        if (firstTime) {
+        if (firstDiscovery) {
             for (let i = 0, j = 0; i < deviceList["Count"] + j; i++) {
                 if (deviceList["Devices"][i] != undefined) {
                     currentNetwork = deviceList["Devices"][i]["Network"];
+                    currentDevice = i;
                     currentNetworkId = i;
                     break;
                 } else {
@@ -192,6 +232,7 @@ function BuildSideBar() {
 
                         anchorElement = document.createElement("a");
                         anchorElement.setAttribute("href", "#");
+                        anchorElement.setAttribute("id", "device_" + k);
                         anchorElement.setAttribute("onclick", "SetCurrentDevice(this)");
                         anchorElement.innerHTML = deviceList["Devices"][i]["Devices"][k]["IP"];
                         listElement.appendChild(anchorElement);
@@ -199,9 +240,18 @@ function BuildSideBar() {
                         network_device_list.setAttribute("style", "height: " + scrollHeight + "px !important");
                         network_device_list.appendChild(listElement);
 
-                        if (firstTime && k == 0) {
-                            currentDevice = deviceList["Devices"][i]["Devices"][k]["IP"];
+                        /*
+                        if (firstDiscovery && k == 0) {
+                            Loading();
+                            firstDiscovery = false;
+                            listElement.classList.add('active');
+                            let innerText = deviceList["Devices"][i]["Devices"][k]["IP"];
+                            if(deviceList["Devices"][i]["Devices"][k]["Hostname"].length > 0) {
+                                innerText += " (" + deviceList["Devices"][i]["Devices"][k]["Hostname"] + ")";
+                            }
+                            $('#current_device').html(innerText);
                         }
+                        */
                     }
                 }
             } else {
@@ -211,6 +261,9 @@ function BuildSideBar() {
 
         changedNetwork = false;
 
+        if(!loadOneTime && !firstLoad) {
+            loadOneTime = true;
+        }
         /*
             listElement.appendChild(anchorElement);
     
@@ -235,7 +288,9 @@ function SetCurrentNetwork(element) {
     var network_list = document.getElementById("network_list");
     var previousNetwork = network_list.getElementsByClassName("active")[0];
 
-    previousNetwork.classList.remove("active");
+    if(previousNetwork != undefined) {
+        previousNetwork.classList.remove("active");
+    }
 
     element.parentElement.classList.add("active");
 
@@ -249,19 +304,99 @@ function SetCurrentNetwork(element) {
     }
 }
 
+var deviceChanged = false;
+function SetCurrentDevice(element) {
+    Loading();
+
+    deviceChanged = true;
+
+    let network_device_list = document.getElementById('network_device_list');
+    let previousDevice = network_device_list.getElementsByClassName('active')[0];
+
+    if(previousDevice != undefined) {
+        previousDevice.classList.remove('active');
+    }
+
+    element.parentElement.classList.add('active');
+
+    currentDevice = parseInt(element.id.split('_')[1]);
+    
+    Loading();
+
+    isFirstTime = false;
+}
+
+function clearSnmpTable() {
+    $('#snmpTable').html('');    
+}
+
 function Loaded() {
     $('#preloader .inner').fadeOut();
     $('#preloader').delay(0).fadeOut('slow');
     $('body').delay(250).css({ 'overflow': 'visible' });
+
+    if(!firstLoad) {
+        $("#sidebar").removeClass("active");
+        $('#content').addClass('moved');
+        if(isMobile()) {
+            $('#sidebar_toggle').removeClass("not_mobile");
+        } else {
+            $('#sidebar_toggle').addClass("not_mobile");
+        }
+        $('#sidebar_toggle').removeClass("fa-arrow-right");
+        $('#sidebar_toggle').addClass("fa-arrow-left");
+    }
+    if(deviceChanged && !firstLoad) {
+        deviceChanged = false;
+
+        $("#sidebar").addClass("active");
+        $('#content').removeClass('moved');
+        if(isMobile()) {
+            $('#sidebar_toggle').removeClass("not_mobile");
+        } else {
+            $('#sidebar_toggle').addClass("not_mobile");
+        }
+        $('#sidebar_toggle').addClass("fa-arrow-right");
+        $('#sidebar_toggle').removeClass("fa-arrow-left");    
+
+        // first time loaded!
+        console.log("first time");
+        sessionStorage.setItem("first_time2","1");
+        firstLoad = true;
+    }
+    if(deviceChanged) {
+        deviceChanged = false;
+
+        $("#sidebar").addClass("active");
+        $('#content').removeClass('moved');
+        if(isMobile()) {
+            $('#sidebar_toggle').removeClass("not_mobile");
+        } else {
+            $('#sidebar_toggle').addClass("not_mobile");
+        }
+        $('#sidebar_toggle').addClass("fa-arrow-right");
+        $('#sidebar_toggle').removeClass("fa-arrow-left");    
+    }
 }
 
+var doneLoading = false;
 function Loading() {
+    doneLoading = false;
     $("#preloader .inner").fadeIn();
     $("body").delay(250).css({ "overflow": "hidden" });
     $("#preloader").delay(250).fadeIn(function () {
-        setTimeout(LoadData, 750);
+        doneLoading = true;
 
-        setTimeout(Loaded, 2000); // 2000
+        var hdd_content = document.getElementById("hdd_content");
+        if(hdd_content != undefined) {
+            hdd_content.innerHTML = "";
+        }
+
+        clearSnmpTable();
+
+        setTimeout(LoadData, 800);
+
+        setTimeout(Loaded, 1500);    
     });
 }
 
@@ -269,14 +404,69 @@ function LoadData() {
     BuildSideBar();
 
     if (firstTime) {
-        getTree();
-
         firstTime = false;
 
         $.ajaxSetup({
             async: true
         });
     }
+
+    if(!doneLoading) {
+        return;
+    }
+
+    if(!firstLoad && !deviceChanged) {
+        return;
+    }
+
+    if (json_data["empty"] == "empty") {
+        return;
+    }
+    let deviceList = json_data["Devices"][currentNetworkId]["Devices"];
+
+    if(deviceList == undefined) {
+        return;
+    }
+
+    let innerText = deviceList[currentDevice]["IP"];
+    if(deviceList[currentDevice]["Hostname"].length > 0) {
+        innerText += " (" + deviceList[currentDevice]["Hostname"] + ")";
+    }
+    $('#current_device').html(innerText);    
+    
+    let snmpData = deviceList[currentDevice]["SNMP"];
+    if(snmpData.length == 0) {
+        return;
+    }
+    
+    for(let j = 0; j < Object.keys(snmpData).length; j++) {
+        let mibName = Object.keys(snmpData)[j];
+        let item = getFormatedItem(j, mibName, snmpData[mibName]);
+        let checkItem = document.querySelector('#header_' + j);
+        if(checkItem == null && snmpData[mibName].length > 0) {
+            $('#snmpTable').append(item);
+        }
+    }
+}
+
+function getFormatedItem(id, name, content) {
+    return `
+    <div class="card z-depth-1 custom-accordion">
+        <div class="card-header clickable-header collapsed" id="header_${id}"
+            data-target="#collapse_${id}" aria-expanded="true"
+            aria-controls="collapse_${id}" data-toggle="collapse">
+            <h5 class="btn btn-link">
+                ${name}
+            </h5>
+        </div>
+        <div id="collapse_${id}" class="collapse" aria-labelledby="header_${id}"
+            data-parent="#snmpTable">
+            <div class="card-body">
+                ${content}
+            </div>
+        </div>
+    </div>
+    `
 }
 
 function arrayContainsArray(superset, subset) {

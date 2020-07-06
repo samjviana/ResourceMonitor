@@ -190,8 +190,14 @@ body h1 {
 }
 .tabs .tab-content section h2 {
     color: #428bff;
+    display: block;
+}
+
+.tabs .tab-content section h2.devices {
+    color: #428bff;
     display: none;
 }
+
 .tabs .tab-content section h2::after {
     tab-content: "";
     position: relative;
