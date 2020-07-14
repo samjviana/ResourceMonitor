@@ -228,6 +228,9 @@ function BuildSideBar() {
                     network_device_list.innerHTML = "";
 
                     for (let k = 0; k < deviceList["Devices"][i]["Devices"].length; k++) {
+                        if(deviceList["Devices"][i]["Devices"][k]["SNMP"].length <= 0) {
+                            continue;
+                        }
                         listElement = document.createElement("li");
 
                         anchorElement = document.createElement("a");

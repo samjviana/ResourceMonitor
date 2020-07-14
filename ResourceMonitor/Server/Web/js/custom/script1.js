@@ -415,14 +415,14 @@ function LoadData() {
             document.getElementById("gpu_card").classList.remove("disabled")
 
             var gpu_model = json_data["Hardware"][gpu_type][0]["Name"];
-            var gpu_load = parseFloat(json_data["Hardware"][gpu_type][0]["Sensors"]["Load"]["GPU Core"]["Value"]).toFixed(1);
-            var gpu_memory_load = parseFloat(json_data["Hardware"][gpu_type][0]["Sensors"]["Load"]["GPU Memory"]["Value"]).toFixed(1);
-            var gpu_temperature = parseFloat(json_data["Hardware"][gpu_type][0]["Sensors"]["Temperature"]["GPU Core"]["Value"]).toFixed(1);
+            var gpu_load = parseFloat(json_data["Hardware"][gpu_type][0]["Sensors"]["Load"]["GPUCore"]["Value"]).toFixed(1);
+            var gpu_memory_load = parseFloat(json_data["Hardware"][gpu_type][0]["Sensors"]["Load"]["GPUMemory"]["Value"]).toFixed(1);
+            var gpu_temperature = parseFloat(json_data["Hardware"][gpu_type][0]["Sensors"]["Temperature"]["GPUCore"]["Value"]).toFixed(1);
             var gpu_max_temperature = parseFloat(json_data["Hardware"][gpu_type][0]["Sensors"]["Temperature"]["Maximum"]).toFixed(1);
-            var gpu_core_clock = parseFloat(json_data["Hardware"][gpu_type][0]["Sensors"]["Clock"]["GPU Core"]["Value"]).toFixed(1);
-            var gpu_max_core_clock = (parseFloat(json_data["Hardware"][gpu_type][0]["Sensors"]["Clock"]["GPU Core"]["Maximum"])).toFixed(1);
-            var gpu_memory_clock = parseFloat(json_data["Hardware"][gpu_type][0]["Sensors"]["Clock"]["GPU Memory"]["Value"]).toFixed(1);
-            var gpu_max_memory_clock = (parseFloat(json_data["Hardware"][gpu_type][0]["Sensors"]["Clock"]["GPU Memory"]["Maximum"])).toFixed(1);
+            var gpu_core_clock = parseFloat(json_data["Hardware"][gpu_type][0]["Sensors"]["Clock"]["GPUCore"]["Value"]).toFixed(1);
+            var gpu_max_core_clock = (parseFloat(json_data["Hardware"][gpu_type][0]["Sensors"]["Clock"]["GPUCore"]["Maximum"])).toFixed(1);
+            var gpu_memory_clock = parseFloat(json_data["Hardware"][gpu_type][0]["Sensors"]["Clock"]["GPUMemory"]["Value"]).toFixed(1);
+            var gpu_max_memory_clock = (parseFloat(json_data["Hardware"][gpu_type][0]["Sensors"]["Clock"]["GPUMemory"]["Maximum"])).toFixed(1);
 
             document.getElementById("gpu_model").innerHTML = gpu_model;
             document.getElementById("gpu_memory_load_value").innerHTML = gpu_memory_load + " %";
@@ -448,7 +448,7 @@ function LoadData() {
         var ram_load = parseFloat(json_data["Hardware"]["RAM"][0]["Sensors"]["Load"]["Memory"]["Value"]).toFixed(1);
         var free_ram = parseFloat(json_data["Hardware"]["RAM"][0]["Sensors"]["Data"]["Available Memory"]["Value"]).toFixed(1);
         var used_ram = parseFloat(json_data["Hardware"]["RAM"][0]["Sensors"]["Data"]["Used Memory"]["Value"]).toFixed(1);
-        var total_ram = parseFloat(json_data["Hardware"]["RAM"][0]["Sensors"]["Data"]["Total Memory"]).toFixed(1);
+        var total_ram = parseFloat(json_data["Hardware"]["RAM"][0]["Sensors"]["Data"]["TotalMemory"]).toFixed(1);
 
         document.getElementById("ram_model").innerHTML = ram_model;
         document.getElementById("total_ram").innerHTML = "Total RAM: " + total_ram + " GB";

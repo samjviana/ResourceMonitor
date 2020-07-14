@@ -1,4 +1,7 @@
 ﻿using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
+using Server.DB.Conexao;
+using Server.DB.Modelos;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -11,10 +14,8 @@ using System.Text;
 using System.Threading;
 using System.Windows.Forms;
 
-namespace Server
-{
-    class Server
-    {
+namespace Server {
+    class Server {
         private int port;
         private HttpListener listener;
         private Thread listenerThread;
@@ -30,8 +31,7 @@ namespace Server
         private bool isRunning;
         private bool webTrigger;
 
-        public Server(int port, MainForm serverParent = null)
-        {
+        public Server(int port, MainForm serverParent = null) {
             this.snmpManager = new SnmpManager();
 
             this.port = port;
@@ -44,46 +44,37 @@ namespace Server
             this.change = false;
             this.webTrigger = false;
 
-            if (serverParent != null)
-            {
+            if (serverParent != null) {
                 this.mainForm = serverParent;
             }
 
-            try
-            {
+            try {
                 this.listener = new HttpListener();
                 this.listener.IgnoreWriteExceptions = true;
             }
-            catch (Exception ex)
-            {
+            catch (Exception ex) {
                 ReportError(ex.Message);
                 OutputMessage("{Server()}" + ex.Message);
                 this.listener = null;
             }
         }
 
-        public Boolean PlatformNotSupported()
-        {
-            if (this.listener == null)
-            {
+        public Boolean PlatformNotSupported() {
+            if (this.listener == null) {
                 return true;
             }
             return false;
         }
 
-        public Boolean Start()
-        {
+        public Boolean Start() {
             this.isRunning = true;
 
-            if (PlatformNotSupported())
-            {
+            if (PlatformNotSupported()) {
                 return false;
             }
 
-            try
-            {
-                if (this.listener.IsListening)
-                {
+            try {
+                if (this.listener.IsListening) {
                     return true;
                 }
 
@@ -92,14 +83,12 @@ namespace Server
                 this.listener.Prefixes.Add(prefix);
                 this.listener.Start();
 
-                if (this.listenerThread == null)
-                {
+                if (this.listenerThread == null) {
                     this.listenerThread = new Thread(HandleRequests);
                     this.listenerThread.Start();
                 }
             }
-            catch (Exception ex)
-            {
+            catch (Exception ex) {
                 ReportError(ex.Message);
                 OutputMessage("{Start()}" + ex.Message);
                 return false;
@@ -107,25 +96,21 @@ namespace Server
             return true;
         }
 
-        public Boolean Stop()
-        {
+        public Boolean Stop() {
             this.isRunning = false;
 
             StopDiscovery();
 
-            if (PlatformNotSupported())
-            {
+            if (PlatformNotSupported()) {
                 return false;
             }
 
-            try
-            {
+            try {
                 this.listenerThread.Abort();
                 this.listener.Stop();
                 this.listenerThread = null;
             }
-            catch (Exception ex)
-            {
+            catch (Exception ex) {
                 ReportError(ex.Message);
                 OutputMessage("{Stop()}" + ex.Message);
                 return false;
@@ -133,50 +118,40 @@ namespace Server
             return true;
         }
 
-        public void StartDiscovery(Dictionary<int, NetworkInterface> interfacesToDiscover)
-        {
+        public void StartDiscovery(Dictionary<int, NetworkInterface> interfacesToDiscover) {
             this.snmpManager.StartDiscovery(interfacesToDiscover);
         }
 
-        public void StopDiscovery()
-        {
+        public void StopDiscovery() {
             this.snmpManager.StopDiscovery();
         }
 
-        public string GetDiscoveryData()
-        {
-            if (snmpManager.DiscoveryDone)
-            {
+        public string GetDiscoveryData() {
+            if (snmpManager.DiscoveryDone) {
                 return snmpManager.GetJsonData();
             }
             return null;
         }
 
-        private void HandleRequests()
-        {
-            while (this.listener.IsListening)
-            {
+        private void HandleRequests() {
+            while (this.listener.IsListening) {
                 IAsyncResult context;
                 context = this.listener.BeginGetContext(new AsyncCallback(ServerCallback), this.listener);
                 context.AsyncWaitHandle.WaitOne();
             }
         }
 
-        private void ServerCallback(IAsyncResult result)
-        {
+        private void ServerCallback(IAsyncResult result) {
             HttpListener listener = (HttpListener)result.AsyncState;
-            if (listener == null || !listener.IsListening)
-            {
+            if (listener == null || !listener.IsListening) {
                 return;
             }
 
             HttpListenerContext context;
-            try
-            {
+            try {
                 context = listener.EndGetContext(result);
             }
-            catch (Exception ex)
-            {
+            catch (Exception ex) {
                 ReportError(ex.Message);
                 OutputMessage("{ServerCallback()}" + ex.Message);
                 return;
@@ -187,24 +162,20 @@ namespace Server
 
             OutputMessage(requestedFile);
 
-            if ((DateTime.Now - currentTime).TotalSeconds >= 10.0)
-            {
+            if ((DateTime.Now - currentTime).TotalSeconds >= 10.0) {
                 CheckComputers();
                 currentTime = DateTime.Now;
             }
 
-            if(requestedFile == "startDiscovery")
-            {
+            if (requestedFile == "startDiscovery") {
                 Dictionary<int, NetworkInterface> interfacesToDiscover = new Dictionary<int, NetworkInterface>();
                 interfacesToDiscover.Add(0, snmpManager.NetworkInterfaces[0]);
                 StartDiscovery(interfacesToDiscover);
 
-                try
-                {
+                try {
                     SendDeviceList(context.Response);
                 }
-                catch (Exception ex)
-                {
+                catch (Exception ex) {
                     ReportError(ex.Message);
                 }
 
@@ -212,36 +183,27 @@ namespace Server
                 return;
             }
 
-            if (requestedFile == "computerList.json")
-            {
-                try
-                {
+            if (requestedFile == "computerList.json") {
+                try {
                     SendComputerList(context.Response);
                 }
-                catch (Exception ex)
-                {
+                catch (Exception ex) {
                     ReportError(ex.Message);
                 }
                 return;
             }
-            else if (requestedFile == "deviceList.json")
-            {
-                try
-                {
+            else if (requestedFile == "deviceList.json") {
+                try {
                     SendDeviceList(context.Response);
                 }
-                catch (Exception ex)
-                {
+                catch (Exception ex) {
                     ReportError(ex.Message);
                 }
                 return;
             }
-            else
-            {
-                if (computerList.Count != 0)
-                {
-                    if (requestedFile.Contains(".json"))
-                    {
+            else {
+                if (computerList.Count != 0) {
+                    if (requestedFile.Contains(".json")) {
                         string computerName = requestedFile.Substring(0, requestedFile.IndexOf(".json"));
 
                         SendComputerData(context.Response, computerName);
@@ -250,21 +212,20 @@ namespace Server
                 }
             }
 
-            if (requestedFile.Contains(".curl"))
-            {
-                try
-                {
+            if (requestedFile.Contains(".curl")) {
+                try {
                     StreamReader stream = new StreamReader(request.InputStream);
                     string receivedData = stream.ReadToEnd();
+                    receivedData = receivedData.Replace("GPU Memory", "GPUMemory");
+                    receivedData = receivedData.Replace("GPU Core", "GPUCore");
+                    receivedData = receivedData.Replace("Total Memory", "TotalMemory");
                     string computerName = request.RawUrl.Substring(1);
                     computerName = computerName.Substring(0, computerName.IndexOf(".curl"));
 
-                    if (!this.computerDatabase.ContainsKey(computerName))
-                    {
+                    if (!this.computerDatabase.ContainsKey(computerName)) {
                         this.computerDatabase.Add(computerName, receivedData);
                         this.computerTimes.Add(computerName, DateTime.Now);
-                        if (!this.computerList.Contains(computerName))
-                        {
+                        if (!this.computerList.Contains(computerName)) {
                             Dictionary<string, object> status = new Dictionary<string, object>();
                             status.Add("Name", computerName);
                             status.Add("State", true);
@@ -274,16 +235,12 @@ namespace Server
                         }
                         this.change = true;
                     }
-                    else
-                    {
+                    else {
                         this.computerDatabase[computerName] = receivedData;
                         this.computerTimes[computerName] = DateTime.Now;
-                        for (int i = 0; i < computerStates.Count; i++)
-                        {
-                            if (((Dictionary<string, object>)computerStates[i.ToString()])["Name"].ToString() == computerName)
-                            {
-                                if (!(bool)((Dictionary<string, object>)computerStates[i.ToString()])["State"])
-                                {
+                        for (int i = 0; i < computerStates.Count; i++) {
+                            if (((Dictionary<string, object>)computerStates[i.ToString()])["Name"].ToString() == computerName) {
+                                if (!(bool)((Dictionary<string, object>)computerStates[i.ToString()])["State"]) {
                                     this.change = true;
                                 }
                                 ((Dictionary<string, object>)computerStates[i.ToString()])["State"] = true;
@@ -291,17 +248,135 @@ namespace Server
                         }
                     }
 
+                    using (var dbContext = new DatabaseContext()) {
+                        dynamic jObject = JObject.Parse(receivedData);
+
+                        dynamic cpus = jObject.Hardware.CPU;
+                        dynamic ram = jObject.Hardware.RAM;
+                        dynamic armazenamentos = jObject.Hardware.HDD;
+                        dynamic gpusNvidia = jObject.Hardware.GpuNvidia;
+                        dynamic gpusAti = jObject.Hardware.GpuAti;
+
+                        Computador computador = dbContext.Computadores.SingleOrDefault(c =>
+                            c.Nome == computerName
+                        );
+                        ICollection<CPU> cpuList = new List<CPU>();
+                        ICollection<GPU> gpuList = new List<GPU>();
+                        ICollection<Armazenamento> armazenamentoList = new List<Armazenamento>();
+                        Memoria memoria = new Memoria() {
+                            Total = ram[0].Sensors.Data.TotalMemory,
+                            DataCriacao = DateTime.Now,
+                            DataUpdate = DateTime.Now
+                        };
+
+                        int numeroCpu = 0;
+                        foreach (var cpuObj in cpus) {
+                            CPU cpu = new CPU() {
+                                Nome = cpuObj.Name,
+                                Clock = cpuObj.Sensors.Clock.Maximum,
+                                Nucleos = cpuObj.Cores,
+                                Numero = numeroCpu,
+                                Potencia = cpuObj.Sensors.Power.Maximum,
+                                Temperatura = cpuObj.Sensors.Temperature.Maximum,
+                                DataCriacao = DateTime.Now,
+                                DataUpdate = DateTime.Now
+                            };
+
+                            cpuList.Add(cpu);
+                            numeroCpu++;
+                        }
+
+                        int numeroGpu = 0;
+                        foreach (var gpuObj in gpusNvidia) {
+                            GPU gpu = new GPU() {
+                                Nome = gpuObj.Name,
+                                ClockMemoria = gpuObj.Sensors.Clock.GPUMemory.Maximum,
+                                ClockNucleo = gpuObj.Sensors.Clock.GPUCore.Maximum,
+                                Numero = numeroGpu,
+                                Temperatura = gpuObj.Sensors.Temperature.Maximum,
+                                DataCriacao = DateTime.Now,
+                                DataUpdate = DateTime.Now
+                            };
+
+                            gpuList.Add(gpu);
+                            numeroGpu++;
+                        }
+                        foreach (var gpuObj in gpusAti) {
+                            GPU gpu = new GPU() {
+                                Nome = gpuObj.Name,
+                                ClockMemoria = gpuObj.Sensors.GPUMemory.Maximum,
+                                ClockNucleo = gpuObj.Sensors.GPUCore.Maximum,
+                                Numero = numeroGpu,
+                                Temperatura = gpuObj.Sensors.Temperature.Maximum,
+                                DataCriacao = DateTime.Now,
+                                DataUpdate = DateTime.Now
+                            };
+
+                            gpuList.Add(gpu);
+                            numeroGpu++;
+                        }
+
+                        foreach(var armazenamentoObj in armazenamentos) {
+                            Armazenamento armazenamento = new Armazenamento() {
+                                Nome = armazenamentoObj.Name,
+                                DataCriacao = DateTime.Now,
+                                DataUpdate = DateTime.Now
+                            };
+
+                            armazenamentoList.Add(armazenamento);
+                        }
+
+                        if (computador == null) {
+
+                            computador = new Computador() {
+                                Nome = computerName,
+                                Estado = true,
+                                Armazenamentos = armazenamentoList,
+                                Memoria = memoria,
+                                GPUs = gpuList,
+                                CPUs = cpuList,
+                                SistemaOperacional = null,
+                                IP = null,
+                                MAC = null,
+                                SNMP = null,
+                                DataCriacao = DateTime.Now,
+                                DataUpdate = DateTime.Now
+                            };
+                            dbContext.Computadores.Add(computador);
+
+                            try {
+                                dbContext.SaveChanges();
+                            }
+                            catch (Exception ex) {
+                                Console.WriteLine(ex.Message);
+                            }
+                        }
+                        else if (!computador.Estado) {
+                            computador.Estado = true;
+                            computador.Armazenamentos = armazenamentos;
+                            computador.Memoria = memoria;
+                            computador.CPUs = cpuList;
+                            computador.GPUs = gpuList;
+                            computador.DataUpdate = DateTime.Now;
+
+                            try {
+                                dbContext.SaveChanges();
+                            }
+                            catch (Exception ex) {
+                                Console.WriteLine(ex.Message);
+                            }
+                        }
+                    }
+
                     SendComputerData(context.Response, computerName);
                 }
-                catch (Exception ex)
-                {
+                catch (Exception ex) {
                     ReportError(ex.Message);
                 }
                 return;
             }
 
-            if (string.IsNullOrEmpty(requestedFile))
-            {
+            if (string.IsNullOrEmpty(requestedFile)) {
                 requestedFile = "index1.html";
             }
 
@@ -310,64 +385,50 @@ namespace Server
             SendRequestedFile(context.Response, requestedFile, extension);
         }
 
-        private void CheckComputers()
-        {
+        private void CheckComputers() {
             DateTime referenceTime = DateTime.Now;
 
-            for (int i = 0; i < computerList.Count; i++)
-            {
-                if (((referenceTime - computerTimes[computerList[i]]).TotalSeconds >= 10.0) && Convert.ToBoolean(((Dictionary<string, object>)computerStates[i.ToString()])["State"]))
-                {
-                    try
-                    {
-                        if (computerList[i] == ((Dictionary<string, object>)computerStates[i.ToString()])["Name"].ToString())
-                        {
+            for (int i = 0; i < computerList.Count; i++) {
+                if (((referenceTime - computerTimes[computerList[i]]).TotalSeconds >= 10.0) && Convert.ToBoolean(((Dictionary<string, object>)computerStates[i.ToString()])["State"])) {
+                    try {
+                        if (computerList[i] == ((Dictionary<string, object>)computerStates[i.ToString()])["Name"].ToString()) {
                             ((Dictionary<string, object>)this.computerStates[i.ToString()])["State"] = false;
                             this.change = true;
                         }
                     }
-                    catch (Exception ex)
-                    {
+                    catch (Exception ex) {
                         ReportError(ex.Message);
                     }
                 }
             }
         }
 
-        private void SendDeviceList(HttpListenerResponse response)
-        {
+        private void SendDeviceList(HttpListenerResponse response) {
             string json = "{\"empty\":\"empty\"}";
 
-            if(this.InterfacesDiscovered != null)
-            {
-                if (this.InterfacesDiscovered.Count <= 0)
-                {
+            if (this.InterfacesDiscovered != null) {
+                if (this.InterfacesDiscovered.Count <= 0) {
                     json = "{\"empty\":\"empty\"}";
                 }
-                else
-                {
+                else {
                     json = "{\"Devices\": ";
                     json += JsonConvert.SerializeObject(this.InterfacesDiscovered);
                     json += ",\"Count\": " + this.InterfacesDiscovered.Count;
-                    if(this.webTrigger)
-                    {
+                    if (this.webTrigger) {
                         this.webTrigger = false;
                         json += ",\"Change\": \"true\"}";
-                    } 
-                    else
-                    {
+                    }
+                    else {
 
                     }
                     json += ",\"Change\": \"" + this.snmpManager.DataChanged + "\"}";
                 }
             }
 
-            try
-            {
+            try {
                 File.WriteAllText("deviceList.json", json);
             }
-            catch
-            {
+            catch {
 
             }
 
@@ -376,28 +437,23 @@ namespace Server
             this.snmpManager.DataChanged = false;
         }
 
-        private void SendComputerList(HttpListenerResponse response)
-        {
+        private void SendComputerList(HttpListenerResponse response) {
             string json;
 
-            if (this.computerList.Count <= 0)
-            {
+            if (this.computerList.Count <= 0) {
                 json = "{\"empty\":\"empty\"}";
             }
-            else
-            {
+            else {
                 json = "{\"Computers\": ";
                 json += JsonConvert.SerializeObject(this.computerStates);
                 json += ",\"Count\": " + this.counter;
                 json += ",\"Change\": \"" + this.change + "\"}";
             }
 
-            try
-            {
+            try {
                 File.WriteAllText("computerList.json", json);
             }
-            catch
-            {
+            catch {
 
             }
 
@@ -406,59 +462,48 @@ namespace Server
             this.change = false;
         }
 
-        private void SendComputerData(HttpListenerResponse response, string computerName)
-        {
+        private void SendComputerData(HttpListenerResponse response, string computerName) {
             string json;
-            try
-            {
+            try {
                 json = this.computerDatabase[computerName];
             }
-            catch (Exception ex)
-            {
+            catch (Exception ex) {
                 ReportError(ex.Message);
                 OutputMessage("{SendComputerData()}" + ex.Message);
                 json = "";
             }
 
-            try
-            {
+            try {
                 //File.WriteAllText(computerName + ".json", json);
             }
-            catch (Exception ex)
-            {
+            catch (Exception ex) {
                 ReportError(ex.Message);
             }
             SendJson(response, json);
         }
 
-        private void SendRequestedFile(HttpListenerResponse response, string requestedFile, string extension)
-        {
+        private void SendRequestedFile(HttpListenerResponse response, string requestedFile, string extension) {
             requestedFile = requestedFile.Replace("/", ".");
             requestedFile = typeof(Server).Namespace + ".Web." + requestedFile;
 
             string[] names = Assembly.GetExecutingAssembly().GetManifestResourceNames();
-            for (int i = 0; i < names.Length; i++)
-            {
-                if (names[i].Replace("\\", ".") == requestedFile)
-                {
+            for (int i = 0; i < names.Length; i++) {
+                if (names[i].Replace("\\", ".") == requestedFile) {
                     Stream stream = Assembly.GetExecutingAssembly().GetManifestResourceStream(names[i]);
                     response.ContentType = GetContentType("." + extension);
                     response.ContentLength64 = stream.Length;
                     byte[] buffer = new byte[512 * 1024];
                     int length;
-                    try
-                    {
+                    try {
                         Stream output = response.OutputStream;
-                        while ((length = stream.Read(buffer, 0, buffer.Length)) > 0)
-                        {
+                        while ((length = stream.Read(buffer, 0, buffer.Length)) > 0) {
                             output.Write(buffer, 0, length);
                         }
                         output.Flush();
                         output.Close();
                         response.Close();
                     }
-                    catch (Exception ex)
-                    {
+                    catch (Exception ex) {
                         ReportError(ex.Message);
                         OutputMessage("{SendRequestedFile()}" + ex.Message);
                     }
@@ -470,8 +515,7 @@ namespace Server
             response.Close();
         }
 
-        private void SendJson(HttpListenerResponse response, string json)
-        {
+        private void SendJson(HttpListenerResponse response, string json) {
             string responseContent = json;
             byte[] buffer = Encoding.UTF8.GetBytes(responseContent);
 
@@ -479,14 +523,12 @@ namespace Server
             response.ContentLength64 = buffer.Length;
             response.ContentType = "application/json";
 
-            try
-            {
+            try {
                 Stream output = response.OutputStream;
                 output.Write(buffer, 0, buffer.Length);
                 output.Close();
             }
-            catch (Exception ex)
-            {
+            catch (Exception ex) {
                 ReportError(ex.Message);
                 OutputMessage("{SendJson()}" + ex.Message);
             }
@@ -494,10 +536,8 @@ namespace Server
             response.Close();
         }
 
-        private string GetContentType(string extension)
-        {
-            switch (extension)
-            {
+        private string GetContentType(string extension) {
+            switch (extension) {
                 case ".css": return "text/css";
                 case ".htm":
                 case ".html": return "text/html";
@@ -509,52 +549,42 @@ namespace Server
             }
         }
 
-        private void OutputMessage(string message)
-        {
-            if (this.mainForm != null)
-            {
+        private void OutputMessage(string message) {
+            if (this.mainForm != null) {
                 this.mainForm.serverOutputText = message;
             }
-            else
-            {
+            else {
                 Console.WriteLine(message);
             }
         }
 
-        private static void ReportError(string Message)
-        {
+        private static void ReportError(string Message) {
             StackFrame CallStack = new StackFrame(1, true);
             Console.WriteLine("Error: " + Message + ", File: " + CallStack.GetFileName() + ", Line: " + CallStack.GetFileLineNumber());
         }
 
-        public Boolean DiscoveryDone
-        {
+        public Boolean DiscoveryDone {
             get { return this.snmpManager.DiscoveryDone; }
         }
 
-        public string NetworkProgress
-        {
+        public string NetworkProgress {
             get { return snmpManager.NetworkProgress; }
         }
 
-        public string IpProgress
-        {
+        public string IpProgress {
             get { return snmpManager.IpProgress; }
         }
 
-        public Boolean IsRunning
-        {
+        public Boolean IsRunning {
             get { return this.isRunning; }
         }
 
-        public Dictionary<int, NetworkInterface> NetworkInterfaces
-        {
+        public Dictionary<int, NetworkInterface> NetworkInterfaces {
             get { return snmpManager.NetworkInterfaces; }
             set { }
         }
 
-        public Dictionary<int, object> InterfacesDiscovered
-        {
+        public Dictionary<int, object> InterfacesDiscovered {
             get { return snmpManager.InterfacesDiscovered; }
             set { }
         }
