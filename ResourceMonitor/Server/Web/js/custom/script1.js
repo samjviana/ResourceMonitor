@@ -505,7 +505,7 @@ function LoadData() {
                 var disk = document.getElementById("hdd" + i + "_disk_label");
                 var storage = document.getElementById("hdd" + i + "_storage_label");
                 model.innerHTML = json_data["Hardware"]["HDD"][i]["Name"];
-                disk.innerHTML = "";
+                disk.innerHTML = json_data["Hardware"]["HDD"][i]["Letters"];
                 storage.innerHTML = parseFloat(json_data["Hardware"]["HDD"][i]["Sensors"]["Load"]["Used Space"]["Value"]).toFixed(1) + " %";
                 $('#hdd' + i + '_progress').progressBar(parseFloat(json_data["Hardware"]["HDD"][i]["Sensors"]["Load"]["Used Space"]["Value"]).toFixed(1));
             } catch {
