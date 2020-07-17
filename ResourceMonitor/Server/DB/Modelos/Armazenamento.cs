@@ -14,9 +14,7 @@ namespace Server.DB.Modelos {
         [Required]
         public string Nome { get; set; }
         public int Capacidade { get; set; }
-        public char Disco { get; set; }
-        [Required]
-        public Computador Computador { get; set; }
+        public string Discos { get; set; }
         public ICollection<Leitura> Leituras { get; set; }
         [Required]
         public DateTime? DataCriacao { get; set; }

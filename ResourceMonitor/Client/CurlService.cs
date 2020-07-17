@@ -62,6 +62,7 @@ namespace Client
                     this.curlThread.Start();
                 }
                 this.isRunning = true;
+                OutputMessage("Curl Service Started!!");
             }
             catch (Exception ex)
             {
@@ -91,6 +92,7 @@ namespace Client
         {
             while (this.IsRunning)
             {
+                OutputMessage("Curl Callback Listening!!");
                 IAsyncResult context;
                 AsyncCallback asyncCallback = new AsyncCallback(callback);
                 context = asyncCallback.BeginInvoke(null, callback, null);
@@ -102,6 +104,9 @@ namespace Client
         {
             ComputerData computerData = new ComputerData(this.computer);
             string json = computerData.GetJsonData();
+            json = json.Replace("GPU Memory", "GPUMemory");
+            json = json.Replace("GPU Core", "GPUCore");
+            json = json.Replace("Total Memory", "TotalMemory");
             SendCurl(this, json);
         }
 
@@ -118,6 +123,7 @@ namespace Client
                 stream.Write(buffer, 0, buffer.Length);
                 stream.Close();
 
+                OutputMessage("HTTP Package Sent!!");
                 HttpWebResponse response = (HttpWebResponse)webRequest.GetResponse();
 
                 if (response.StatusCode == HttpStatusCode.OK)

@@ -9,9 +9,11 @@ using System.Threading.Tasks;
 namespace Server.DB.Modelos {
     [Table("Computador")]
     public class Computador {
-        [Key]
+        [Key, Index(IsUnique = true, Order = 1)]
         public int Id { get; set; }
         [Required]
+        [Index(IsUnique = true, Order = 2)]
+        [StringLength(64)]
         public string Nome { get; set; }
         [Required]
         public ICollection<Armazenamento> Armazenamentos { get; set; }

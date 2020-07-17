@@ -53,6 +53,11 @@ namespace Client
                     if (hardware.HardwareType == (HardwareType)hardwareType)
                     {
                         hardwareDict.Add("Name", hardware.Name);
+                        if(hardware.HardwareType == HardwareType.HDD) {
+                            Dictionary<string, object> lettersSize = GetLetterSizeHdd(hardware.Name);
+                            hardwareDict.Add("Size", lettersSize["Size"]);
+                            hardwareDict.Add("Letters", lettersSize["Letters"]);
+                        }
                         if (hardware.SubHardware.Length > 0)
                         {
                             hardwareDict.Add("SubHardware", ParseHardware(hardware.SubHardware, true));
@@ -67,6 +72,9 @@ namespace Client
                             if(hardware.HardwareType == HardwareType.CPU)
                             {
                                 hardwareDict.Add("Cores", this.cpuCoreNumber);
+                            }
+                            if(hardware.HardwareType == HardwareType.HDD) {
+                                hardwareDict.Add("Letra", "a");
                             }
                             this.cpuCoreNumber = 0;
                         }
@@ -429,6 +437,51 @@ namespace Client
             }
 
             return maxClockSpeed;
+        }
+
+        private Dictionary<string, object> GetLetterSizeHdd(string model) {
+            string query = $"SELECT DeviceId,Size FROM Win32_DiskDrive WHERE Model='{model}'";
+            Dictionary<string, object> returnValues = new Dictionary<string, object>();
+            ManagementObjectSearcher queryResults = new ManagementObjectSearcher(query);
+
+            string partitionId = string.Empty;
+            foreach(var diskDrive in queryResults.Get()) {
+                partitionId = diskDrive["DeviceID"].ToString();
+                double size = 0;
+                try {
+                    size = Convert.ToDouble(diskDrive["Size"]);
+                    size = size / 1073741824.0; // Converte Bytes para GigaBytes
+                }
+                catch(Exception) {
+                    size = -1;
+                }
+                returnValues.Add("Size", size);
+                break;
+            }
+
+            if(string.IsNullOrEmpty(partitionId)) {
+                returnValues.Add("Letters", "-1");
+                return returnValues;
+            }
+            else {
+                query = $"ASSOCIATORS OF {{Win32_DiskDrive.DeviceId='{partitionId}'}} WHERE AssocClass = Win32_DiskDriveToDiskPartition";
+                queryResults = new ManagementObjectSearcher(query);
+                ManagementObjectCollection partitions = queryResults.Get();
+
+                string deviceLetters = string.Empty;
+                foreach(var partition in partitions) {
+                    query = $"ASSOCIATORS OF {{Win32_DiskPartition.DeviceId='{partition["DeviceID"]}'}} WHERE AssocClass = Win32_LogicalDiskToPartition";
+                    queryResults = new ManagementObjectSearcher(query);
+
+                    foreach(var logicalDrive in queryResults.Get()) {
+                        deviceLetters += logicalDrive["DeviceID"].ToString() + ", ";
+                    }
+                }
+                deviceLetters = deviceLetters.Remove(deviceLetters.Length - 2);
+                returnValues.Add("Letters", deviceLetters);
+            }
+
+            return returnValues;
         }
     }
 }

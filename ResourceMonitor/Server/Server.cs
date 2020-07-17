@@ -30,6 +30,7 @@ namespace Server {
         private SnmpManager snmpManager;
         private bool isRunning;
         private bool webTrigger;
+        private readonly object dbLock = new object();
 
         public Server(int port, MainForm serverParent = null) {
             this.snmpManager = new SnmpManager();
@@ -216,9 +217,6 @@ namespace Server {
                 try {
                     StreamReader stream = new StreamReader(request.InputStream);
                     string receivedData = stream.ReadToEnd();
-                    receivedData = receivedData.Replace("GPU Memory", "GPUMemory");
-                    receivedData = receivedData.Replace("GPU Core", "GPUCore");
-                    receivedData = receivedData.Replace("Total Memory", "TotalMemory");
                     string computerName = request.RawUrl.Substring(1);
                     computerName = computerName.Substring(0, computerName.IndexOf(".curl"));
 
@@ -319,6 +317,8 @@ namespace Server {
                         foreach(var armazenamentoObj in armazenamentos) {
                             Armazenamento armazenamento = new Armazenamento() {
                                 Nome = armazenamentoObj.Name,
+                                Capacidade = armazenamentoObj.Size,
+                                Discos = armazenamentoObj.Letters,
                                 DataCriacao = DateTime.Now,
                                 DataUpdate = DateTime.Now
                             };
@@ -342,7 +342,11 @@ namespace Server {
                                 DataCriacao = DateTime.Now,
                                 DataUpdate = DateTime.Now
                             };
-                            dbContext.Computadores.Add(computador);
+
+                            lock(dbLock) {
+                                Console.WriteLine(computerName + " adicionado");
+                                dbContext.Computadores.Add(computador);
+                            }
 
                             try {
                                 dbContext.SaveChanges();
@@ -371,6 +375,7 @@ namespace Server {
                     SendComputerData(context.Response, computerName);
                 }
                 catch (Exception ex) {
+                    SendErrorJson(context.Response, "Erro ao receber o CURL.");
                     ReportError(ex.Message);
                 }
                 return;
@@ -401,6 +406,11 @@ namespace Server {
                     }
                 }
             }
+        }
+
+        private void SendErrorJson(HttpListenerResponse response, string errorMessage) {
+            string json = "{\"ERRO\":\"" + errorMessage + "\"}";
+            SendJson(response, json);
         }
 
         private void SendDeviceList(HttpListenerResponse response) {
@@ -439,6 +449,21 @@ namespace Server {
 
         private void SendComputerList(HttpListenerResponse response) {
             string json;
+
+            using (var context = new DatabaseContext()) {
+                if(context.Computadores.Count() <= 0) {
+                    json = "{\"empty\":\"empty\"}";
+                }
+                else {
+                    Console.WriteLine(JsonConvert.SerializeObject(
+                        context.Computadores
+                            .Include("CPUs")
+                            .Include("GPUs")
+                            .Include("Armazenamentos")
+                            .Include("Memoria").ToList()));
+                }
+            }
+
 
             if (this.computerList.Count <= 0) {
                 json = "{\"empty\":\"empty\"}";

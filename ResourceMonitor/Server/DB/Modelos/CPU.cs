@@ -18,8 +18,6 @@ namespace Server.DB.Modelos {
         public int Numero { get; set; }
         public ICollection<Leitura> Leituras { get; set; }
         [Required]
-        public Computador Computador { get; set; }
-        [Required]
         public DateTime? DataCriacao { get; set; }
         [Required]
         public DateTime? DataUpdate { get; set; }

@@ -10,14 +10,11 @@ namespace Server.DB.Modelos {
     [Table("Memoria")]
     public class Memoria {
         [Key]
-        [ForeignKey("Computador")]
         public int Id { get; set; }
         [Required]
         public int Total { get; set; }
         [Required]
         public int Pentes { get; set; }
-        [Required]
-        public Computador Computador { get; set; }
         public ICollection<Leitura> Leituras { get; set; }
         [Required]
         public DateTime? DataCriacao { get; set; }
