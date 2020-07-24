@@ -6,8 +6,9 @@ using Newtonsoft.Json;
 using System.Windows.Forms;
 using System.Reflection;
 using System.IO;
+using Client;
 
-namespace Client
+namespace Utils
 {
     class SettingsManager
     {

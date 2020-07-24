@@ -5,8 +5,7 @@ using System.Reflection;
 using System.Text;
 using Microsoft.Win32.TaskScheduler;
 
-namespace Client
-{
+namespace Utils {
     class StartupManager
     {
         public static void AddToStartup()

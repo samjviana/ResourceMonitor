@@ -3,10 +3,13 @@
 ################################################################################
 
 /.vs/
-/ResourceMonitor/.vs/ResourceMonitor/v16
+esourceMonitor/.vs/
 /ResourceMonitor/Client/bin/
 /ResourceMonitor/Client/obj/
+/ResourceMonitor/Instalador/
 /ResourceMonitor/OpenHardwareMonitorLib/Bin/
 /ResourceMonitor/OpenHardwareMonitorLib/obj/
+/ResourceMonitor/packages/
 /ResourceMonitor/Server/bin/
 /ResourceMonitor/Server/obj/
+/ResourceMonitor/visual-studio/

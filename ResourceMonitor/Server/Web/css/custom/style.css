@@ -219,6 +219,10 @@ p {
     color: #cccccc;
 }
 
+.card.disabled button {
+    color: #cccccc;
+}
+
 button {
     background-color: Transparent;
     background-repeat: no-repeat;

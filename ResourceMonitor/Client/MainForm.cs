@@ -10,6 +10,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using Utils;
 
 namespace Client
 {
@@ -17,7 +18,6 @@ namespace Client
     {
         private CurlService curlService;
         private SettingsManager settingsManager;
-        private Logger logger;
 
         public MainForm()
         {
@@ -27,12 +27,6 @@ namespace Client
         private void MainForm_Load(object sender, EventArgs e)
         {
             this.timer.Start();
-
-            this.logger = new Logger("log.txt");
-
-            this.curlService = new CurlService("http://samjviana.ddns.net:8084/", this);
-
-            this.curlService.Start();
 
             string configFileName = Path.ChangeExtension(Application.ExecutablePath, ".config");
 
@@ -44,7 +38,6 @@ namespace Client
                 if (!ParseSettings(settingsManager.Load(configData)))
                 {
                     this.serverOutput.AppendText("Erro ao carregar configurações" + Environment.NewLine);
-                    this.logger.Log("Erro ao carregar configurações.");
                 }
             }
 
@@ -64,13 +57,11 @@ namespace Client
                     this.serverOutput.Invoke((Action)delegate
                     {
                         this.serverOutput.AppendText(value + Environment.NewLine);
-                        this.logger.Log(value);
                     });
                 }
                 catch
                 {
                     Console.WriteLine("Erro ao gerar output!");
-                    this.logger.Log("Erro ao gerar output.");
                 }
             }
         }
@@ -85,7 +76,6 @@ namespace Client
             catch
             {
                 this.serverOutput.AppendText("Erro ao salvar configurações" + Environment.NewLine);
-                this.logger.Log("Erro ao salvar configurações.");
             }
 
         }
@@ -163,7 +153,6 @@ namespace Client
                 catch
                 {
                     this.serverOutput.AppendText("Erro ao salvar configurações" + Environment.NewLine);
-                    this.logger.Log("Erro ao salvar configurações.");
                 }
             }
         }
@@ -178,12 +167,23 @@ namespace Client
             catch
             {
                 this.serverOutput.AppendText("Erro ao salvar configurações" + Environment.NewLine);
-                this.logger.Log("Erro ao salvar configurações.");
             }
         }
 
         private void MainForm_Shown(object sender, EventArgs e)
         {
+            this.curlService = new CurlService("http://samjviana.ddns.net:8084/", this);
+
+            if(!this.curlService.Start()) {
+                this.Show();
+                this.WindowState = FormWindowState.Normal;
+                MessageBox.Show(this, this.curlService.versaoErrada, "Versão Incorreta", MessageBoxButtons.OK, MessageBoxIcon.Error);
+
+                Dispose();
+                Close();
+                Application.Exit();
+            }
+
             trayIcon.Visible = true;
         }
 
@@ -216,7 +216,6 @@ namespace Client
             catch
             {
                 this.serverOutput.AppendText("Erro ao salvar configurações" + Environment.NewLine);
-                this.logger.Log("Erro ao salvar configurações.");
             }
             Dispose();
             Close();
@@ -232,12 +231,14 @@ namespace Client
         private void timer_Tick(object sender, EventArgs e)
         {
             //this.serverOutput.AppendText("curlService.IsRunning: " + curlService.IsRunning + Environment.NewLine);
+            /*
             if(!curlService.IsRunning)
             {
                 curlService = new CurlService("http://samjviana.ddns.net:8084/", this);
 
                 this.curlService.Start();
             }
+            */
         }
 
         private void closeToTrayCheckBox_CheckedChanged(object sender, EventArgs e)
@@ -249,7 +250,6 @@ namespace Client
             catch
             {
                 this.serverOutput.AppendText("Erro ao salvar configurações" + Environment.NewLine);
-                this.logger.Log("Erro ao salvar configurações.");
             }
         }
 
@@ -262,7 +262,6 @@ namespace Client
             catch
             {
                 this.serverOutput.AppendText("Erro ao salvar configurações" + Environment.NewLine);
-                this.logger.Log("Erro ao salvar configurações.");
             }
         }
     }

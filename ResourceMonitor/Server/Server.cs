@@ -21,16 +21,15 @@ namespace Server {
         private Thread listenerThread;
         private Dictionary<string, string> computerDatabase;
         private Dictionary<string, DateTime> computerTimes;
-        private Dictionary<string, object> computerStates;
-        private List<string> computerList;
         private DateTime currentTime;
         private readonly MainForm mainForm;
-        private int counter;
+        private int computerCount;
         private bool change;
         private SnmpManager snmpManager;
         private bool isRunning;
         private bool webTrigger;
         private readonly object dbLock = new object();
+        private string clientVersion = "0.7.2";
 
         public Server(int port, MainForm serverParent = null) {
             this.snmpManager = new SnmpManager();
@@ -38,10 +37,8 @@ namespace Server {
             this.port = port;
             this.computerDatabase = new Dictionary<string, string>();
             this.computerTimes = new Dictionary<string, DateTime>();
-            this.computerStates = new Dictionary<string, object>();
-            this.computerList = new List<string>();
             this.currentTime = DateTime.Now;
-            this.counter = 0;
+            this.computerCount = 0;
             this.change = false;
             this.webTrigger = false;
 
@@ -163,9 +160,19 @@ namespace Server {
 
             OutputMessage(requestedFile);
 
-            if ((DateTime.Now - currentTime).TotalSeconds >= 10.0) {
+            if ((DateTime.Now - currentTime).TotalSeconds >= 1.0) {
                 CheckComputers();
                 currentTime = DateTime.Now;
+            }
+
+            if(requestedFile == "GetClientVersion") {
+                try {
+                    SendClientVersion(context.Response);
+                }
+                catch(Exception ex) {
+                    ReportError(ex.Message);
+                }
+                return;
             }
 
             if (requestedFile == "startDiscovery") {
@@ -203,7 +210,7 @@ namespace Server {
                 return;
             }
             else {
-                if (computerList.Count != 0) {
+                if (computerCount != 0) {
                     if (requestedFile.Contains(".json")) {
                         string computerName = requestedFile.Substring(0, requestedFile.IndexOf(".json"));
 
@@ -220,33 +227,17 @@ namespace Server {
                     string computerName = request.RawUrl.Substring(1);
                     computerName = computerName.Substring(0, computerName.IndexOf(".curl"));
 
-                    if (!this.computerDatabase.ContainsKey(computerName)) {
-                        this.computerDatabase.Add(computerName, receivedData);
-                        this.computerTimes.Add(computerName, DateTime.Now);
-                        if (!this.computerList.Contains(computerName)) {
-                            Dictionary<string, object> status = new Dictionary<string, object>();
-                            status.Add("Name", computerName);
-                            status.Add("State", true);
-                            this.computerStates.Add(counter.ToString(), status);
-                            this.computerList.Add(computerName);
-                            this.counter++;
-                        }
-                        this.change = true;
+                    if (!computerDatabase.ContainsKey(computerName)) {
+                        computerDatabase.Add(computerName, receivedData);
                     }
                     else {
-                        this.computerDatabase[computerName] = receivedData;
-                        this.computerTimes[computerName] = DateTime.Now;
-                        for (int i = 0; i < computerStates.Count; i++) {
-                            if (((Dictionary<string, object>)computerStates[i.ToString()])["Name"].ToString() == computerName) {
-                                if (!(bool)((Dictionary<string, object>)computerStates[i.ToString()])["State"]) {
-                                    this.change = true;
-                                }
-                                ((Dictionary<string, object>)computerStates[i.ToString()])["State"] = true;
-                            }
-                        }
+                        computerDatabase[computerName] = receivedData;
                     }
 
+
                     using (var dbContext = new DatabaseContext()) {
+                        this.computerCount = dbContext.Computadores.Count();
+
                         dynamic jObject = JObject.Parse(receivedData);
 
                         dynamic cpus = jObject.Hardware.CPU;
@@ -269,12 +260,20 @@ namespace Server {
 
                         int numeroCpu = 0;
                         foreach (var cpuObj in cpus) {
+                            double power;
+                            if(((JObject)cpuObj.Sensors.Power).Count <= 0) {
+                                power = -1;
+                            }
+                            else {
+                                power = cpuObj.Sensors.Power.Maximum;
+                            }
+
                             CPU cpu = new CPU() {
                                 Nome = cpuObj.Name,
                                 Clock = cpuObj.Sensors.Clock.Maximum,
                                 Nucleos = cpuObj.Cores,
                                 Numero = numeroCpu,
-                                Potencia = cpuObj.Sensors.Power.Maximum,
+                                Potencia = power,
                                 Temperatura = cpuObj.Sensors.Temperature.Maximum,
                                 DataCriacao = DateTime.Now,
                                 DataUpdate = DateTime.Now
@@ -285,6 +284,7 @@ namespace Server {
                         }
 
                         int numeroGpu = 0;
+                        bool errorFlag = false;
                         foreach (var gpuObj in gpusNvidia) {
                             GPU gpu = new GPU() {
                                 Nome = gpuObj.Name,
@@ -295,9 +295,13 @@ namespace Server {
                                 DataCriacao = DateTime.Now,
                                 DataUpdate = DateTime.Now
                             };
-
-                            gpuList.Add(gpu);
                             numeroGpu++;
+
+                            if (gpu.Temperatura == -1) {
+                                errorFlag = true;
+                                break;
+                            }
+                            gpuList.Add(gpu);
                         }
                         foreach (var gpuObj in gpusAti) {
                             GPU gpu = new GPU() {
@@ -314,7 +318,7 @@ namespace Server {
                             numeroGpu++;
                         }
 
-                        foreach(var armazenamentoObj in armazenamentos) {
+                        foreach (var armazenamentoObj in armazenamentos) {
                             Armazenamento armazenamento = new Armazenamento() {
                                 Nome = armazenamentoObj.Name,
                                 Capacidade = armazenamentoObj.Size,
@@ -326,7 +330,7 @@ namespace Server {
                             armazenamentoList.Add(armazenamento);
                         }
 
-                        if (computador == null) {
+                        if (computador == null && !errorFlag) {
 
                             computador = new Computador() {
                                 Nome = computerName,
@@ -343,7 +347,7 @@ namespace Server {
                                 DataUpdate = DateTime.Now
                             };
 
-                            lock(dbLock) {
+                            lock (dbLock) {
                                 Console.WriteLine(computerName + " adicionado");
                                 dbContext.Computadores.Add(computador);
                             }
@@ -355,12 +359,22 @@ namespace Server {
                                 Console.WriteLine(ex.Message);
                             }
                         }
-                        else if (!computador.Estado) {
+                        else if (!computador.Estado && !errorFlag) {
                             computador.Estado = true;
-                            computador.Armazenamentos = armazenamentos;
+                            computador.Armazenamentos = armazenamentoList;
                             computador.Memoria = memoria;
                             computador.CPUs = cpuList;
                             computador.GPUs = gpuList;
+                            computador.DataUpdate = DateTime.Now;
+
+                            try {
+                                dbContext.SaveChanges();
+                            }
+                            catch (Exception ex) {
+                                Console.WriteLine(ex.Message);
+                            }
+                        }
+                        else {
                             computador.DataUpdate = DateTime.Now;
 
                             try {
@@ -390,16 +404,27 @@ namespace Server {
             SendRequestedFile(context.Response, requestedFile, extension);
         }
 
+        private void SendClientVersion(HttpListenerResponse response) {
+            string json = "{\"ClientVersion\":\"" + clientVersion + "\"}";
+            SendJson(response, json);
+        }
+
         private void CheckComputers() {
             DateTime referenceTime = DateTime.Now;
+            bool changed = false;
 
-            for (int i = 0; i < computerList.Count; i++) {
-                if (((referenceTime - computerTimes[computerList[i]]).TotalSeconds >= 10.0) && Convert.ToBoolean(((Dictionary<string, object>)computerStates[i.ToString()])["State"])) {
+            using(var dbContext = new DatabaseContext()) {
+                foreach(var computador in dbContext.Computadores) {
+                    double minutes = (referenceTime - computador.DataUpdate).Value.TotalMinutes;
+                    if(minutes >= 1.0) {
+                        computador.Estado = false;
+                        changed = true;
+                    }
+                }
+
+                if(changed) {
                     try {
-                        if (computerList[i] == ((Dictionary<string, object>)computerStates[i.ToString()])["Name"].ToString()) {
-                            ((Dictionary<string, object>)this.computerStates[i.ToString()])["State"] = false;
-                            this.change = true;
-                        }
+                        dbContext.SaveChanges();
                     }
                     catch (Exception ex) {
                         ReportError(ex.Message);
@@ -451,35 +476,31 @@ namespace Server {
             string json;
 
             using (var context = new DatabaseContext()) {
-                if(context.Computadores.Count() <= 0) {
+                if (context.Computadores.Count() <= 0) {
                     json = "{\"empty\":\"empty\"}";
                 }
                 else {
+                    json = JsonConvert.SerializeObject(new {
+                        Computadores = context.Computadores.Select(c => new { c.Nome, c.Estado }),
+                        Quantidade = context.Computadores.Count(),
+                        Mudanca = this.change
+                    });
+                    /*
                     Console.WriteLine(JsonConvert.SerializeObject(
                         context.Computadores
                             .Include("CPUs")
                             .Include("GPUs")
                             .Include("Armazenamentos")
                             .Include("Memoria").ToList()));
+                    */
+                    /*
+                    Console.WriteLine(JsonConvert.SerializeObject(new {
+                        Computadores = context.Computadores.Select(c => new { c.Nome, c.Estado }),
+                        Quantidade = context.Computadores.Count(),
+                        Mudanca = this.change
+                    }));
+                    */
                 }
-            }
-
-
-            if (this.computerList.Count <= 0) {
-                json = "{\"empty\":\"empty\"}";
-            }
-            else {
-                json = "{\"Computers\": ";
-                json += JsonConvert.SerializeObject(this.computerStates);
-                json += ",\"Count\": " + this.counter;
-                json += ",\"Change\": \"" + this.change + "\"}";
-            }
-
-            try {
-                File.WriteAllText("computerList.json", json);
-            }
-            catch {
-
             }
 
             SendJson(response, json);

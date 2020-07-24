@@ -460,6 +460,9 @@ namespace Client
             }
 
             if(string.IsNullOrEmpty(partitionId)) {
+                if (!returnValues.ContainsKey("Size")) {
+                    returnValues.Add("Size", -1);
+                }
                 returnValues.Add("Letters", "-1");
                 return returnValues;
             }
@@ -481,6 +484,9 @@ namespace Client
                 returnValues.Add("Letters", deviceLetters);
             }
 
+            if (!returnValues.ContainsKey("Size")) {
+                returnValues.Add("Size", -1);
+            }
             return returnValues;
         }
     }
