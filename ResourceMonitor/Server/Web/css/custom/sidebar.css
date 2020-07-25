@@ -72,7 +72,7 @@ a:focus {
 }
 
 #sidebar ul.components {
-    padding: 40px 0;
+    /* padding: 40px 0; */
     border-bottom: 1px solid #47748b;
 }
 
@@ -162,6 +162,34 @@ a.article:hover {
 .sidebar-button:hover {
     background-color: #7386D5;
     color: #fff;
+}
+
+.computer-container{
+    overflow-y: scroll;
+}
+
+.search-box label {
+    color: #FFFFFF;
+    padding-left: 10px;
+}
+
+.search-box label.active {
+    color: #FFFFFF !important;
+}
+
+.search-box input {
+    margin-top: 30px;
+    padding-top: 12px;
+    padding-left: 10px;
+    color: #FFFFFF;
+}
+
+.search-box input:focus {
+    border-bottom: 1px solid #43bcf2 !important;
+    padding-top: 12px;
+    padding-left: 10px;
+    box-sizing: border-box !important; 
+    color: #FFFFFF;
 }
 
 /* ---------------------------------------------------

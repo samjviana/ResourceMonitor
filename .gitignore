@@ -3,7 +3,7 @@
 ################################################################################
 
 /.vs/
-esourceMonitor/.vs/
+/ResourceMonitor/.vs/
 /ResourceMonitor/Client/bin/
 /ResourceMonitor/Client/obj/
 /ResourceMonitor/Instalador/
@@ -13,3 +13,8 @@ esourceMonitor/.vs/
 /ResourceMonitor/Server/bin/
 /ResourceMonitor/Server/obj/
 /ResourceMonitor/visual-studio/
+/ResourceMonitor/Server/Web/package.json
+/ResourceMonitor/Server/Web/package-lock.json
+/ResourceMonitor/Server/Web/node_modules/
+/ResourceMonitor/Server/Web/configs/
+/ResourceMonitor/Server/Web_mdb5/

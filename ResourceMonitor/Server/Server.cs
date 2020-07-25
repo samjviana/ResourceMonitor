@@ -376,6 +376,7 @@ namespace Server {
                         }
                         else {
                             computador.DataUpdate = DateTime.Now;
+                            computador.Estado = true;
 
                             try {
                                 dbContext.SaveChanges();
@@ -566,6 +567,7 @@ namespace Server {
             byte[] buffer = Encoding.UTF8.GetBytes(responseContent);
 
             response.AddHeader("Cache-Control", "no-cache");
+            response.AddHeader("Access-Control-Allow-Origin", "*");
             response.ContentLength64 = buffer.Length;
             response.ContentType = "application/json";
 
@@ -591,6 +593,7 @@ namespace Server {
                 case ".jpeg": return "image/jpeg";
                 case ".js": return "application/x-javascript";
                 case ".png": return "image/png";
+                case ".ico": return "text/plain";
                 default: return "application/octet-stream";
             }
         }

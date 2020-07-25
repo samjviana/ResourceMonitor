@@ -16,12 +16,29 @@ function isMobile() {
     }
 }
 
+$(window).resize(function() {
+    let computerListOffset = document.getElementById("computer_container").offsetTop;
+    let computerListHeight = screen.height - computerListOffset;
+    document.getElementById("computer_container").setAttribute("style", `height: ${computerListHeight}px;`);
+});
+
 $(document).ready(function () {
+    let computerListOffset = document.getElementById("computer_container").offsetTop;
+    let computerListHeight = screen.height - computerListOffset;
+    document.getElementById("computer_container").setAttribute("style", `height: ${computerListHeight}px;`);
+
     if (!firstLoad) {
         Object.values(cardTypes).forEach((value) => {
             DisableCard(value);
         });
     }
+
+    $("#listSearch").on("keyup", function () {
+        var value = $(this).val().toLowerCase();
+        $("#computer_container li").filter(function () {
+            $(this).toggle($(this).text().toLowerCase().indexOf(value) > -1)
+        });
+    });
 
     $("#sidebar_toggle").on("click", function () {
         if (!firstLoad) {
