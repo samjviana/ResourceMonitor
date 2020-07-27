@@ -16,7 +16,7 @@ function isMobile() {
     }
 }
 
-$(window).resize(function() {
+$(window).resize(function () {
     let computerListOffset = document.getElementById("computer_container").offsetTop;
     let computerListHeight = screen.height - computerListOffset;
     document.getElementById("computer_container").setAttribute("style", `height: ${computerListHeight}px;`);
@@ -42,7 +42,10 @@ $(document).ready(function () {
 
     $("#sidebar_toggle").on("click", function () {
         if (!firstLoad) {
-            alert("Selecione um computador!");
+            Swal.fire({
+                icon: "info",
+                text: 'Selecione um computador antes de continuar!'
+            });
             return;
         }
         $("#sidebar").toggleClass("active");
@@ -76,10 +79,6 @@ $(document).ready(function () {
         $(".swipe-area").swipe({
             allowPageScroll: "vertical",
             swipeRight: function (event, direction, distance, duration, fingerCount, finderData, currentDirection) {
-                if (!firstLoad) {
-                    alert("Selecione um computador!");
-                    return;
-                }
                 $("#sidebar").removeClass("active");
                 $('#content').addClass('moved');
                 if ($(".navbar-collapse").hasClass("navbar-collapse collapse show")) {
@@ -90,6 +89,13 @@ $(document).ready(function () {
                 $('#sidebar_toggle').addClass("fa-arrow-left");
             },
             swipeLeft: function (event, direction, distance, duration, fingerCount, finderData, currentDirection) {
+                if (!firstLoad) {
+                    Swal.fire({
+                        icon: "info",
+                        text: 'Selecione um computador antes de continuar!'
+                    });
+                    return;
+                }
                 $("#sidebar").addClass("active");
                 $('#content').removeClass('moved');
                 if ($(".navbar-collapse").hasClass("navbar-collapse collapse show")) {
@@ -209,6 +215,10 @@ var previousData = {
     Computadores: [],
     Quantidade: 0,
 };
+var currentComputers = {
+    Computadores: [],
+    Quantidade: 0,
+};
 function BuildSideBar() {
     if (firstTime) {
         $.ajaxSetup({
@@ -216,7 +226,9 @@ function BuildSideBar() {
         });
     }
 
-    $.getJSON('computerList.json', function (data) {
+    $.getJSON('http://samjviana.ddns.net:8084/computerList.json', function (data) {
+        currentComputers = data;
+
         if ((data["Quantidade"] == 0)) {
             return;
         }
@@ -263,25 +275,38 @@ var computerChanged = false;
 
 function SetCurrentComputer(element) {
     let sidebar = document.getElementById("computer_list");
-    if (!element.parentElement.classList.contains("offline")) {
-        let activeComputer = sidebar.getElementsByClassName("active")[0];
-        let previousComputer = undefined;
+    let selectedId = element.getAttribute("id");
 
-        if (activeComputer != undefined) {
-            previousComputer = activeComputer.firstElementChild;
-            activeComputer.classList.remove("active");
+    for (let i = 0; i < currentComputers.Quantidade; i++) {
+        if (currentComputers.Computadores[i].Nome == selectedId) {
+            if (!currentComputers.Computadores[i].Estado) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Oops...',
+                    text: 'Esse computador está Offline!'
+                })
+                return;
+            }
         }
+    }
 
-        element.parentElement.classList.add("active");
+    let activeComputer = sidebar.getElementsByClassName("active")[0];
+    let previousComputer = undefined;
 
-        currentComputer = element.getAttribute("id");
-        sessionStorage.setItem("currentComputer", currentComputer);
+    if (activeComputer != undefined) {
+        previousComputer = activeComputer.firstElementChild;
+        activeComputer.classList.remove("active");
+    }
 
-        if (!firstLoad || (currentComputer != previousComputer.getAttribute("id"))) {
-            cpuDropdownBuilded = false;
-            computerChanged = true;
-            Loading();
-        }
+    element.parentElement.classList.add("active");
+
+    currentComputer = selectedId;
+    sessionStorage.setItem("currentComputer", currentComputer);
+
+    if (!firstLoad || (currentComputer != previousComputer.getAttribute("id"))) {
+        cpuDropdownBuilded = false;
+        computerChanged = true;
+        Loading();
     }
 }
 
@@ -372,7 +397,7 @@ function LoadData() {
         return;
     }
 
-    $.getJSON(currentComputer + ".json", function (data) {
+    $.getJSON('http://samjviana.ddns.net:8084/' + currentComputer + ".json", function (data) {
         json_data = data;
         if (currentComputer == "PC-SAMUEL") {
             json_data["Hardware"]["CPU"][1] = extraCpu;

@@ -650,6 +650,12 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="server.ico" />
+    <EmbeddedResource Include="Web\sweetalert2\sweetalert2.all.js" />
+    <EmbeddedResource Include="Web\sweetalert2\sweetalert2.all.min.js" />
+    <EmbeddedResource Include="Web\sweetalert2\sweetalert2.css" />
+    <EmbeddedResource Include="Web\sweetalert2\sweetalert2.js" />
+    <EmbeddedResource Include="Web\sweetalert2\sweetalert2.min.css" />
+    <EmbeddedResource Include="Web\sweetalert2\sweetalert2.min.js" />
     <EmbeddedResource Include="Web\favicon.ico" />
     <Content Include="Web\img\mdb-favicon.ico" />
     <Content Include="Web\src\js\bootstrap\dist\alert.js" />

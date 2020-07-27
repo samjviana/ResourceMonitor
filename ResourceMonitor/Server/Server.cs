@@ -486,21 +486,6 @@ namespace Server {
                         Quantidade = context.Computadores.Count(),
                         Mudanca = this.change
                     });
-                    /*
-                    Console.WriteLine(JsonConvert.SerializeObject(
-                        context.Computadores
-                            .Include("CPUs")
-                            .Include("GPUs")
-                            .Include("Armazenamentos")
-                            .Include("Memoria").ToList()));
-                    */
-                    /*
-                    Console.WriteLine(JsonConvert.SerializeObject(new {
-                        Computadores = context.Computadores.Select(c => new { c.Nome, c.Estado }),
-                        Quantidade = context.Computadores.Count(),
-                        Mudanca = this.change
-                    }));
-                    */
                 }
             }
 
