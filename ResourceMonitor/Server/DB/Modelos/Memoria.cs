@@ -15,6 +15,7 @@ namespace Server.DB.Modelos {
         public int Total { get; set; }
         [Required]
         public int Pentes { get; set; }
+        public virtual Computador Computador { get; set; }
         public ICollection<Leitura> Leituras { get; set; }
         [Required]
         public DateTime? DataCriacao { get; set; }

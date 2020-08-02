@@ -13,10 +13,21 @@ namespace Server.DB.Conexao {
         public DbSet<Armazenamento> Armazenamentos { get; set; }
         public DbSet<GPU> GPUs { get; set; }
         public DbSet<Memoria> Memorias { get; set; }
+
         public DatabaseContext() : base("name=ResourceMonitorDBConnString") {
             //Database.SetInitializer<DatabaseContext>(new CreateDatabaseIfNotExists<DatabaseContext>());
 
             Database.SetInitializer<DatabaseContext>(new DropCreateDatabaseIfModelChanges<DatabaseContext>());
         }
+
+        protected override void OnModelCreating(DbModelBuilder modelBuilder) {
+            modelBuilder.Entity<Computador>()
+                        .HasRequired(c => c.Memoria)
+                        .WithOptional(m => m.Computador)
+                        .Map(m => m.MapKey("Memoria_Id"));
+
+            base.OnModelCreating(modelBuilder);
+        }
+
     }
 }

@@ -18,7 +18,7 @@ namespace Server.DB.Modelos {
         [Required]
         public ICollection<Armazenamento> Armazenamentos { get; set; }
         [Required]
-        public Memoria Memoria { get; set; }
+        public virtual Memoria Memoria { get; set; }
         [Required]
         public ICollection<CPU> CPUs { get; set; }
         [Required]

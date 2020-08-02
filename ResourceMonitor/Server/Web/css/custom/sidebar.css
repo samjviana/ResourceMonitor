@@ -12,12 +12,12 @@ a:focus {
 
 #sidebar {
     left: 0;
-    min-width: 275px;
-    max-width: 275px;
-    background: #7386d5;
-    color: #fff;
+    width: 275px;
     transition: all 0.3s;
-    z-index: 1010;
+    z-index: 1020;
+    height: 100%;
+    position: fixed;
+    color: white;
 }
 
 #sidebar.active {
@@ -45,9 +45,11 @@ a:focus {
     border-radius: 0px 25px 25px 0px;
 }
 
+/*
 #sidebar.active .sidebar-header:hover {
     background-image: linear-gradient(to right, #6d7fcc 10%, #738dd5 40%);
 }
+*/
 
 #sidebar .sidebar-header .title {
     padding-top: 20px;
@@ -89,14 +91,14 @@ a:focus {
 }
 
 #sidebar ul li a:hover {
-    color: #7386d5;
-    background: #fff;
+    color: #1565C0;
+    background: white;
 }
 
 #sidebar ul li.active > a,
 a[aria-expanded="true"] {
-    color: #fff;
-    background: #6778bf;
+    color: white;
+    background: #1976D2;
 }
 
 /*

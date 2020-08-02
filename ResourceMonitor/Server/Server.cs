@@ -4,6 +4,7 @@ using Server.DB.Conexao;
 using Server.DB.Modelos;
 using System;
 using System.Collections.Generic;
+using System.Data.Entity.Infrastructure;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
@@ -165,11 +166,50 @@ namespace Server {
                 currentTime = DateTime.Now;
             }
 
-            if(requestedFile == "GetClientVersion") {
+            if (requestedFile == "GetClientVersion") {
                 try {
                     SendClientVersion(context.Response);
                 }
-                catch(Exception ex) {
+                catch (Exception ex) {
+                    ReportError(ex.Message);
+                }
+                return;
+            }
+
+            if (requestedFile == "computers") {
+                try {
+                    SendComputers(context.Response);
+                }
+                catch (Exception ex) {
+                    ReportError(ex.Message);
+                }
+                return;
+            }
+
+            if (requestedFile.StartsWith("computer?")) {
+                try {
+                    string[] requestedSplits = requestedFile.Split('?');
+                    string computername = requestedSplits[requestedSplits.Length - 1];
+                    SendComputer(context.Response, computername);
+                }
+                catch (Exception ex) {
+                    ReportError(ex.Message);
+                }
+                return;
+            }
+
+            if (requestedFile.StartsWith("readings?")) {
+                try {
+                    string[] keys = requestedFile.Split('?')[1].Split('&');
+                    string computername = keys[0];
+                    string component = keys[1];
+                    int cpuid = -1;
+                    if(component == "cpu") {
+                        cpuid = Convert.ToInt32(keys[2]);
+                    }
+                    SendComputerReading(context.Response, computername, component, cpuid);
+                }
+                catch (Exception ex) {
                     ReportError(ex.Message);
                 }
                 return;
@@ -234,6 +274,7 @@ namespace Server {
                         computerDatabase[computerName] = receivedData;
                     }
 
+                    SendJson(context.Response, "{\"received\":\"received\"}");
 
                     using (var dbContext = new DatabaseContext()) {
                         this.computerCount = dbContext.Computadores.Count();
@@ -246,9 +287,13 @@ namespace Server {
                         dynamic gpusNvidia = jObject.Hardware.GpuNvidia;
                         dynamic gpusAti = jObject.Hardware.GpuAti;
 
-                        Computador computador = dbContext.Computadores.SingleOrDefault(c =>
-                            c.Nome == computerName
-                        );
+                        Computador computador = dbContext.Computadores
+                            .Include("Armazenamentos")
+                            .Include("CPUs")
+                            .Include("GPUs")
+                            .Include("Memoria")
+                            .FirstOrDefault(c => c.Nome == computerName);
+
                         ICollection<CPU> cpuList = new List<CPU>();
                         ICollection<GPU> gpuList = new List<GPU>();
                         ICollection<Armazenamento> armazenamentoList = new List<Armazenamento>();
@@ -261,7 +306,7 @@ namespace Server {
                         int numeroCpu = 0;
                         foreach (var cpuObj in cpus) {
                             double power;
-                            if(((JObject)cpuObj.Sensors.Power).Count <= 0) {
+                            if (((JObject)cpuObj.Sensors.Power).Count <= 0) {
                                 power = -1;
                             }
                             else {
@@ -331,7 +376,6 @@ namespace Server {
                         }
 
                         if (computador == null && !errorFlag) {
-
                             computador = new Computador() {
                                 Nome = computerName,
                                 Estado = true,
@@ -352,15 +396,26 @@ namespace Server {
                                 dbContext.Computadores.Add(computador);
                             }
 
-                            try {
-                                dbContext.SaveChanges();
-                            }
-                            catch (Exception ex) {
-                                Console.WriteLine(ex.Message);
-                            }
+                            bool saveFailed;
+                            do {
+                                saveFailed = false;
+
+                                try {
+                                    dbContext.SaveChanges();
+                                }
+                                catch (DbUpdateConcurrencyException ex) {
+                                    saveFailed = true;
+
+                                    // Update the values of the entity that failed to save from the store
+                                    ex.Entries.Single().Reload();
+                                }
+
+                            } while (saveFailed);
                         }
                         else if (!computador.Estado && !errorFlag) {
                             computador.Estado = true;
+
+                            int delMemoriaId = computador.Memoria.Id;
                             computador.Armazenamentos = armazenamentoList;
                             computador.Memoria = memoria;
                             computador.CPUs = cpuList;
@@ -368,7 +423,44 @@ namespace Server {
                             computador.DataUpdate = DateTime.Now;
 
                             try {
-                                dbContext.SaveChanges();
+                                bool saveFailed;
+                                do {
+                                    saveFailed = false;
+
+                                    try {
+                                        dbContext.SaveChanges();
+                                    }
+                                    catch (DbUpdateConcurrencyException ex) {
+                                        saveFailed = true;
+
+                                        // Update the values of the entity that failed to save from the store
+                                        ex.Entries.Single().Reload();
+                                    }
+
+                                } while (saveFailed);
+
+                                List<Armazenamento> delArmazenamentos = dbContext.Armazenamentos.SqlQuery("SELECT * FROM Armazenamento WHERE Armazenamento.Computador_Id IS NULL").ToList();
+                                List<CPU> delCpus = dbContext.CPUs.SqlQuery("SELECT * FROM CPUs WHERE CPUs.Computador_Id IS NULL").ToList();
+                                List<GPU> delGpus = dbContext.GPUs.SqlQuery("SELECT * FROM GPUs WHERE GPUs.Computador_Id IS NULL").ToList();
+                                Console.WriteLine(JsonConvert.SerializeObject(delArmazenamentos));
+                                dbContext.Armazenamentos.RemoveRange(delArmazenamentos);
+                                Memoria delMemoria = dbContext.Memorias.Where(m => m.Id == delMemoriaId).FirstOrDefault();
+                                dbContext.Memorias.Remove(delMemoria);
+
+                                do {
+                                    saveFailed = false;
+
+                                    try {
+                                        dbContext.SaveChanges();
+                                    }
+                                    catch (DbUpdateConcurrencyException ex) {
+                                        saveFailed = true;
+
+                                        // Update the values of the entity that failed to save from the store
+                                        ex.Entries.Single().Reload();
+                                    }
+
+                                } while (saveFailed);
                             }
                             catch (Exception ex) {
                                 Console.WriteLine(ex.Message);
@@ -378,16 +470,25 @@ namespace Server {
                             computador.DataUpdate = DateTime.Now;
                             computador.Estado = true;
 
-                            try {
-                                dbContext.SaveChanges();
-                            }
-                            catch (Exception ex) {
-                                Console.WriteLine(ex.Message);
-                            }
+                            bool saveFailed;
+                            do {
+                                saveFailed = false;
+
+                                try {
+                                    Console.WriteLine("SAVED");
+                                    dbContext.SaveChanges();
+                                }
+                                catch (DbUpdateConcurrencyException ex) {
+                                    saveFailed = true;
+
+                                    // Update the values of the entity that failed to save from the store
+                                    ex.Entries.Single().Reload();
+                                }
+
+                            } while (saveFailed);
                         }
                     }
 
-                    SendComputerData(context.Response, computerName);
                 }
                 catch (Exception ex) {
                     SendErrorJson(context.Response, "Erro ao receber o CURL.");
@@ -414,16 +515,16 @@ namespace Server {
             DateTime referenceTime = DateTime.Now;
             bool changed = false;
 
-            using(var dbContext = new DatabaseContext()) {
-                foreach(var computador in dbContext.Computadores) {
+            using (var dbContext = new DatabaseContext()) {
+                foreach (var computador in dbContext.Computadores) {
                     double minutes = (referenceTime - computador.DataUpdate).Value.TotalMinutes;
-                    if(minutes >= 1.0) {
+                    if (minutes >= 2.0) {
                         computador.Estado = false;
                         changed = true;
                     }
                 }
 
-                if(changed) {
+                if (changed) {
                     try {
                         dbContext.SaveChanges();
                     }
@@ -492,6 +593,90 @@ namespace Server {
             SendJson(response, json);
 
             this.change = false;
+        }
+
+        private void SendComputers(HttpListenerResponse response) {
+            string json;
+
+            using (var context = new DatabaseContext()) {
+                if (context.Computadores.Count() <= 0) {
+                    json = "{}";
+                }
+                else {
+                    var computers = context.Computadores.Select(c => new {
+                        name = c.Nome,
+                        status = c.Estado
+                    });
+                    json = JsonConvert.SerializeObject(computers);
+                }
+            }
+
+            SendJson(response, json);
+
+            this.change = false;
+        }
+
+        public void SendComputer(HttpListenerResponse response, string computername) {
+            string json;
+
+            using (var context = new DatabaseContext()) {
+                if (context.Computadores.Count() <= 0) {
+                    json = "{}";
+                }
+                else {
+                    Computador computador = context.Computadores
+                        .Include("Armazenamentos")
+                        .Include("CPUs")
+                        .Include("GPUs")
+                        .Include("Memoria")
+                        .Where(c => c.Nome.ToLower() == computername.ToLower())
+                        .FirstOrDefault();
+                    Console.WriteLine("LOADED");
+                    var cpusObj = new List<object>();
+                    foreach(var cpu in computador.CPUs) {
+                        cpusObj.Add(new {
+                            id = cpu.Numero,
+                            name = cpu.Nome,
+                            temperature = cpu.Temperatura,
+                            clock = cpu.Clock,
+                            power = cpu.Potencia
+                        });
+                    }
+                    
+                    var obj = new {
+                        name = computador.Nome,
+                        status = computador.Estado,
+                        cpus = cpusObj
+                    };
+                    json = JsonConvert.SerializeObject(obj);
+                }
+            }
+
+            SendJson(response, json);
+        }
+
+        public void SendComputerReading(HttpListenerResponse response, string computername, string component, int cpuid) {
+            string json = "{}";
+            
+            try {
+                dynamic reading = JObject.Parse(this.computerDatabase[computername].Replace("CPU Package", "CPU_Package").Replace("CPU Total", "CPU_Total"));
+
+                if (component == "cpu") {
+                    var jsonobj = new {
+                        load = reading.Hardware.CPU[cpuid].Sensors.Load.CPU_Total.Value,
+                        temperature = reading.Hardware.CPU[cpuid].Sensors.Temperature.Average,
+                        clock = reading.Hardware.CPU[cpuid].Sensors.Clock.Average,
+                        power = reading.Hardware.CPU[cpuid].Sensors.Power.CPU_Package.Value
+                    };
+                    json = JsonConvert.SerializeObject(jsonobj);
+                }
+            }
+            catch(Exception ex) {
+                ReportError(ex.Message);
+                OutputMessage("{SendComputerData()}" + ex.Message);
+            }
+
+            SendJson(response, json);
         }
 
         private void SendComputerData(HttpListenerResponse response, string computerName) {

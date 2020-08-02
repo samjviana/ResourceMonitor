@@ -17,15 +17,15 @@ function isMobile() {
 }
 
 $(window).resize(function () {
-    let computerListOffset = document.getElementById("computer_container").offsetTop;
-    let computerListHeight = screen.height - computerListOffset;
-    document.getElementById("computer_container").setAttribute("style", `height: ${computerListHeight}px;`);
+    const element = document.getElementById("computer_container");
+    const offset = window.innerHeight - element.offsetTop;
+    element.setAttribute('style', `height: ${offset}px`);
 });
 
 $(document).ready(function () {
-    let computerListOffset = document.getElementById("computer_container").offsetTop;
-    let computerListHeight = screen.height - computerListOffset;
-    document.getElementById("computer_container").setAttribute("style", `height: ${computerListHeight}px;`);
+    const element = document.getElementById("computer_container");
+    const offset = window.innerHeight - element.offsetTop;
+    element.setAttribute('style', `height: ${offset}px`);
 
     if (!firstLoad) {
         Object.values(cardTypes).forEach((value) => {
@@ -417,8 +417,10 @@ function LoadData() {
          */
         if (json_data["Hardware"]["GpuNvidia"].length != 0) {
             var gpu_type = "GpuNvidia";
+            EnableCard(cardTypes.GPU);
         } else if (json_data["Hardware"]["GpuAti"].length != 0) {
             var gpu_type = "GpuAti";
+            EnableCard(cardTypes.GPU);
         } else {
             DisableCard(cardTypes.GPU);
             var gpu_type = "not found";
