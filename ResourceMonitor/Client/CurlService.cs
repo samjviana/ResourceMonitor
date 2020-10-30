@@ -94,6 +94,10 @@ namespace Client {
 
         private void CurlCallback() {
             logger.Debug("CurlCallback foi iniciada.");
+            IAsyncResult firstContext;
+            AsyncCallback firstAsyncCallback = new AsyncCallback(firstCallback);
+            firstContext = firstAsyncCallback.BeginInvoke(null, firstCallback, null);
+            firstContext.AsyncWaitHandle.WaitOne();
             while (this.IsRunning) {
                 logger.Debug("CurlCallback aguardando para enviar requisições HTTP.");
                 OutputMessage("Curl Callback Listening!!");
@@ -113,9 +117,17 @@ namespace Client {
             json = json.Replace("Total Memory", "TotalMemory");
             SendCurl(this, json);
         }
+        public void firstCallback(IAsyncResult result) {
+            ComputerData computerData = new ComputerData(this.computer);
+            string json = computerData.GetJsonData();
+            json = json.Replace("GPU Memory", "GPUMemory");
+            json = json.Replace("GPU Core", "GPUCore");
+            json = json.Replace("Total Memory", "TotalMemory");
+            _SendCurl(this, json);
+        }
 
         private bool CheckVersion() {
-            WebRequest webRequest = WebRequest.Create(this.server + "GetClientVersion");
+            WebRequest webRequest = WebRequest.Create(this.server + "versao");
             webRequest.Method = "GET";
             try {
                 OutputMessage("Verificando versão ...");
@@ -150,7 +162,7 @@ namespace Client {
         }
 
         public Task SendCurl(CurlService instance, string json) {
-            WebRequest webRequest = WebRequest.Create(instance.server + Environment.MachineName + ".curl");
+            WebRequest webRequest = WebRequest.Create(instance.server + "leitura");
             byte[] buffer = Encoding.UTF8.GetBytes(json);
             webRequest.Method = "POST";
             webRequest.ContentType = "application/json";
@@ -183,6 +195,112 @@ namespace Client {
 
             return null;
         }
+
+        public Task _SendCurl(CurlService instance, string json) {
+            Console.WriteLine(json);
+            dynamic obj = JsonConvert.DeserializeObject(json);
+            var cpus = new List<Object>();
+            int index = 0;
+            foreach (dynamic cpu in obj.Hardware.CPU) {
+                cpus.Add(new {
+                    id = -1,
+                    number = index,
+                    name = cpu.Name,
+                    temperature = cpu.Sensors.Temperature.Maximum,
+                    clock = cpu.Sensors.Clock.Maximum,
+                    power = cpu.Sensors.Power.Maximum,
+                    cores = cpu.Cores
+                });
+                index++;
+            }
+
+            var gpus = new List<Object>();
+            index = 0;
+            foreach (dynamic gpu in obj.Hardware.GpuNvidia) {
+                gpus.Add(new {
+                    id = -1,
+                    number = index,
+                    name = gpu.Name,
+                    temperature = gpu.Sensors.Temperature.Maximum,
+                    coreclock = gpu.Sensors.Clock.GPUCore.Maximum,
+                    memoryclock = gpu.Sensors.Clock.GPUMemory.Maximum
+                });
+                index++;
+            }
+            foreach (dynamic gpu in obj.Hardware.GpuAti) {
+                gpus.Add(new {
+                    id = -1,
+                    number = index,
+                    name = gpu.Name,
+                    temperature = gpu.Sensors.Temperature.Maximum,
+                    coreclock = gpu.Sensors.Clock.GPUCore.Maximum,
+                    memoryclock = gpu.Sensors.Power.GPUMemory.Maximum
+                });
+                index++;
+            }
+
+            var armazenamentos = new List<Object>();
+            index = 0;
+            foreach (dynamic armazenamento in obj.Hardware.HDD) {
+                armazenamentos.Add(new {
+                    id = -1,
+                    number = index,
+                    name = armazenamento.Name,
+                    size = armazenamento.Size,
+                    disks = armazenamento.Letters,
+                });
+                index++;
+            }
+
+            var ram = new {
+                id = -1,
+                total = Double.Parse(obj.Hardware.RAM[0].Sensors.Data.TotalMemory.ToString()),
+                modules = -1
+            };
+
+            dynamic newObj = new {
+                id = -1,
+                name = obj.Name,
+                cpus = cpus,
+                gpus = gpus,
+                storages = armazenamentos,
+                ram = ram,
+                status = true,
+            };
+            WebRequest webRequest = WebRequest.Create("http://samjviana.ddns.net:9002/computador");
+            byte[] buffer = Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(newObj));
+            webRequest.Method = "POST";
+            webRequest.ContentType = "application/json";
+            webRequest.ContentLength = buffer.Length;
+            try {
+                Stream stream = webRequest.GetRequestStream();
+                stream.Write(buffer, 0, buffer.Length);
+                stream.Close();
+
+                OutputMessage("HTTP Package Sent!!");
+                HttpWebResponse response = (HttpWebResponse)webRequest.GetResponse();
+
+                if (response.StatusCode == HttpStatusCode.OK) {
+                    string data = string.Empty;
+                    StreamReader streamReader = new StreamReader(response.GetResponseStream());
+                    data = streamReader.ReadToEnd();
+                    streamReader.Close();
+                    streamReader.Dispose();
+                }
+
+                webRequest.Abort();
+                response.Close();
+
+                this.counter++;
+                OutputMessage("[" + this.counter + "] Curl sent.");
+            }
+            catch (Exception ex) {
+                OutputMessage("{SendCurl()}" + ex.Message);
+            }
+
+            return null;
+        }
+
 
         private void OutputMessage(string message) {
             if (this.mainForm != null) {

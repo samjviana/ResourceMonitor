@@ -172,7 +172,7 @@ namespace Client
 
         private void MainForm_Shown(object sender, EventArgs e)
         {
-            this.curlService = new CurlService("http://samjviana.ddns.net:8084/", this);
+            this.curlService = new CurlService("http://samjviana.ddns.net:9002/", this);
 
             if(!this.curlService.Start()) {
                 this.Show();

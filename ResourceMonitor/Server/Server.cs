@@ -43,6 +43,30 @@ namespace Server {
             this.change = false;
             this.webTrigger = false;
 
+            using (var context = new DatabaseContext()) {
+                List<Armazenamento> delArmazenamentos = context.Armazenamentos.SqlQuery("SELECT * FROM Armazenamento WHERE Armazenamento.Computador_Id IS NULL").ToList();
+                List<CPU> delCpus = context.CPUs.SqlQuery("SELECT * FROM CPUs WHERE CPUs.Computador_Id IS NULL").ToList();
+                List<GPU> delGpus = context.GPUs.SqlQuery("SELECT * FROM GPUs WHERE GPUs.Computador_Id IS NULL").ToList();
+                context.Armazenamentos.RemoveRange(delArmazenamentos);
+                context.CPUs.RemoveRange(delCpus);
+                context.GPUs.RemoveRange(delGpus);
+
+                bool saveFailed = false;
+                do {
+                    saveFailed = false;
+
+                    try {
+                        context.SaveChanges();
+                    }
+                    catch (DbUpdateConcurrencyException ex) {
+                        saveFailed = true;
+
+                        // Update the values of the entity that failed to save from the store
+                        ex.Entries.Single().Reload();
+                    }
+
+                } while (saveFailed);
+            }
             if (serverParent != null) {
                 this.mainForm = serverParent;
             }
@@ -203,11 +227,11 @@ namespace Server {
                     string[] keys = requestedFile.Split('?')[1].Split('&');
                     string computername = keys[0];
                     string component = keys[1];
-                    int cpuid = -1;
-                    if(component == "cpu") {
-                        cpuid = Convert.ToInt32(keys[2]);
+                    int componentid = -1;
+                    if(component == "cpu" || component == "gpu") {
+                        componentid = Convert.ToInt32(keys[2]);
                     }
-                    SendComputerReading(context.Response, computername, component, cpuid);
+                    SendComputerReading(context.Response, computername, component, componentid);
                 }
                 catch (Exception ex) {
                     ReportError(ex.Message);
@@ -444,6 +468,8 @@ namespace Server {
                                 List<GPU> delGpus = dbContext.GPUs.SqlQuery("SELECT * FROM GPUs WHERE GPUs.Computador_Id IS NULL").ToList();
                                 Console.WriteLine(JsonConvert.SerializeObject(delArmazenamentos));
                                 dbContext.Armazenamentos.RemoveRange(delArmazenamentos);
+                                dbContext.CPUs.RemoveRange(delCpus);
+                                dbContext.GPUs.RemoveRange(delGpus);
                                 Memoria delMemoria = dbContext.Memorias.Where(m => m.Id == delMemoriaId).FirstOrDefault();
                                 dbContext.Memorias.Remove(delMemoria);
 
@@ -642,11 +668,41 @@ namespace Server {
                             power = cpu.Potencia
                         });
                     }
-                    
+                    var gpusObj = new List<object>();
+                    int gpucount = 0;
+                    foreach(var gpu in computador.GPUs) {
+                        gpusObj.Add(new {
+                            id = gpucount,
+                            name = gpu.Nome,
+                            temperature = gpu.Temperatura,
+                            coreclock = gpu.ClockNucleo,
+                            memoryclock = gpu.ClockMemoria
+                        });
+                        gpucount++;
+                    }
+                    var ram = new {
+                        total = computador.Memoria.Total,
+                        pentes = computador.Memoria.Pentes
+                    };
+                    int hddcount = 0;
+                    var hddsObj = new List<object>();
+                    foreach(var hdd in computador.Armazenamentos) {
+                        hddsObj.Add(new {
+                            id = hddcount,
+                            name = hdd.Nome,
+                            disk = hdd.Discos,
+                            size = hdd.Capacidade
+                        });
+                        hddcount++;
+                    }                        
+
                     var obj = new {
                         name = computador.Nome,
                         status = computador.Estado,
-                        cpus = cpusObj
+                        cpus = cpusObj,
+                        gpus = gpusObj,
+                        ram = ram,
+                        storages = hddsObj
                     };
                     json = JsonConvert.SerializeObject(obj);
                 }
@@ -655,20 +711,90 @@ namespace Server {
             SendJson(response, json);
         }
 
-        public void SendComputerReading(HttpListenerResponse response, string computername, string component, int cpuid) {
+        private bool isUndefined(string value) {
+            if (value == "{}") {
+                return true;
+            }
+            else return false;
+        }
+
+        public void SendComputerReading(HttpListenerResponse response, string computername, string component, int id) {
             string json = "{}";
             
             try {
                 dynamic reading = JObject.Parse(this.computerDatabase[computername].Replace("CPU Package", "CPU_Package").Replace("CPU Total", "CPU_Total"));
 
                 if (component == "cpu") {
+                    var load = -1;
+                    var temperature = -1;
+                    var clock = -1;
+                    var power = -1;
+
+                    if (!isUndefined(Convert.ToString(reading.Hardware.CPU[id].Sensors.Load))) {
+                        load = reading.Hardware.CPU[id].Sensors.Load.CPU_Total.Value;
+                    }
+                    if (!isUndefined(Convert.ToString(reading.Hardware.CPU[id].Sensors.Temperature))) {
+                        temperature = reading.Hardware.CPU[id].Sensors.Temperature.Average;
+                    }
+                    if (!isUndefined(Convert.ToString(reading.Hardware.CPU[id].Sensors.Clock))) {
+                        clock = reading.Hardware.CPU[id].Sensors.Clock.Average;
+                    }
+                    if (!isUndefined(Convert.ToString(reading.Hardware.CPU[id].Sensors.Power))) {
+                        power = reading.Hardware.CPU[id].Sensors.Power.CPU_Package.Value;
+                    }
+
                     var jsonobj = new {
-                        load = reading.Hardware.CPU[cpuid].Sensors.Load.CPU_Total.Value,
-                        temperature = reading.Hardware.CPU[cpuid].Sensors.Temperature.Average,
-                        clock = reading.Hardware.CPU[cpuid].Sensors.Clock.Average,
-                        power = reading.Hardware.CPU[cpuid].Sensors.Power.CPU_Package.Value
+                        load = load,
+                        temperature = temperature,
+                        clock = clock,
+                        power = power
                     };
                     json = JsonConvert.SerializeObject(jsonobj);
+                }
+                else if(component == "gpu") {
+                    var jsonobj = new {
+                        load = reading.Hardware.GpuNvidia[id].Sensors.Load.GPUCore.Value,
+                        memoryload = reading.Hardware.GpuNvidia[id].Sensors.Load.GPUMemory.Value,
+                        temperature = reading.Hardware.GpuNvidia[id].Sensors.Temperature.GPUCore.Value,
+                        coreclock = reading.Hardware.GpuNvidia[id].Sensors.Clock.GPUCore.Value,
+                        memoryclock = reading.Hardware.GpuNvidia[id].Sensors.Clock.GPUMemory.Value
+                    };
+                    json = JsonConvert.SerializeObject(jsonobj);
+                }
+                else if(component == "ram") {
+                    var jsonobj = new {
+                        load = reading.Hardware.RAM[0].Sensors.Load.Memory.Value,
+                        free = reading.Hardware.RAM[0].Sensors.Data["Available Memory"].Value,
+                        used = reading.Hardware.RAM[0].Sensors.Data["Used Memory"].Value
+                    };
+                    json = JsonConvert.SerializeObject(jsonobj);
+                }
+                else if(component == "hdd") {
+                    int hddcount = 0;
+                    List<dynamic> hdds = new List<dynamic>();
+                    foreach(dynamic hdd in reading.Hardware.HDD) {
+                        dynamic read = -1;
+                        dynamic write = -1;
+                        if (Convert.ToString(hdd.Sensors.Data) != "{}") {
+                            read = hdd.Sensors.Data["Host Reads"].Value;
+                            write = hdd.Sensors.Data["Host Writes"].Value;
+                        }
+
+                        var hddobj = new {
+                            usage = hdd.Sensors.Load["Used Space"].Value,
+                            size = hdd.Size,
+                            read = read,
+                            write = write
+                        };
+
+                        hddcount++;
+                        hdds.Add(hddobj);
+                    }
+
+                    var jsonobj = new {
+                        hdds
+                    };
+                    json = JsonConvert.SerializeObject(hdds);
                 }
             }
             catch(Exception ex) {
